@@ -37,6 +37,9 @@ export default async function SchedulePage() {
         <h1 style={{ fontFamily: "var(--font-bebas)", fontSize: "4rem", letterSpacing: "0.02em", lineHeight: 1 }}>
           SCHEDULE
         </h1>
+        <p className="mt-3" style={{ color: "#9ca3af", fontSize: "0.75rem", letterSpacing: "0.2em", textTransform: "uppercase" }}>
+          📍 Canggu Padel · Every Tuesday · 5:30pm start
+        </p>
       </div>
 
       <div className="space-y-8">
@@ -126,11 +129,19 @@ export default async function SchedulePage() {
                               {homeSets} – {awaySets}
                             </div>
                             <div style={{ fontSize: "0.65rem", color: "#555", marginTop: "2px" }}>
-                              {result.sets.map((s, i) => `${s.home}-${s.away}`).join(" ")}
+                              {result.sets.map((s) => `${s.home}-${s.away}`).join(" ")}
+                            </div>
+                            <div style={{ fontSize: "0.65rem", color: "#777", marginTop: "4px", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                              {match.time ?? "5:30pm"}
                             </div>
                           </div>
                         ) : (
-                          <span style={{ color: "#444", fontSize: "0.9rem", letterSpacing: "0.1em" }}>VS</span>
+                          <div>
+                            <span style={{ color: "#444", fontSize: "0.9rem", letterSpacing: "0.1em" }}>VS</span>
+                            <div style={{ fontSize: "0.65rem", color: "#777", marginTop: "4px", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                              {match.time ?? "5:30pm"}
+                            </div>
+                          </div>
                         )}
                       </div>
 

@@ -2,6 +2,7 @@ export interface Match {
   id: string;
   home: number;
   away: number;
+  time?: string;
 }
 
 export interface Round {
@@ -15,10 +16,10 @@ export const schedule: Round[] = [
     round: 1,
     date: "2026-05-26",
     matches: [
-      { id: "r1m1", home: 1, away: 8 },
-      { id: "r1m2", home: 2, away: 7 },
-      { id: "r1m3", home: 3, away: 6 },
-      { id: "r1m4", home: 4, away: 5 },
+      { id: "r1m1", home: 1, away: 3 },
+      { id: "r1m2", home: 4, away: 2 },
+      { id: "r1m3", home: 5, away: 8 },
+      { id: "r1m4", home: 6, away: 7, time: "7:00pm" },
     ],
   },
   {
@@ -65,10 +66,10 @@ export const schedule: Round[] = [
     round: 6,
     date: "2026-06-30",
     matches: [
-      { id: "r6m1", home: 1, away: 3 },
-      { id: "r6m2", home: 4, away: 2 },
-      { id: "r6m3", home: 5, away: 8 },
-      { id: "r6m4", home: 6, away: 7 },
+      { id: "r6m1", home: 1, away: 8 },
+      { id: "r6m2", home: 2, away: 7 },
+      { id: "r6m3", home: 3, away: 6 },
+      { id: "r6m4", home: 4, away: 5 },
     ],
   },
   {

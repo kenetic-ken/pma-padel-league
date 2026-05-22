@@ -65,7 +65,7 @@ export default function HomePage() {
             className="text-gray-300 mb-10"
             style={{ fontSize: "1.1rem", letterSpacing: "0.2em", fontWeight: 300 }}
           >
-            TUESDAYS · 5:30PM · SEASON 1
+            CANGGU PADEL · TUESDAYS · 5:30PM · SEASON 1
           </p>
 
           {/* Stats */}
@@ -138,7 +138,7 @@ export default function HomePage() {
 
       {/* Info section */}
       <section className="max-w-7xl mx-auto px-4 py-20">
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
             {
               icon: "🎾",
@@ -154,6 +154,11 @@ export default function HomePage() {
               icon: "⚡",
               title: "GOOD VIBES",
               body: "Silver level play. Competitive, social, fun. No egos. Just premium padel with mates.",
+            },
+            {
+              icon: "📍",
+              title: "CANGGU PADEL",
+              body: "All matches played at Canggu Padel every Tuesday from 5:30pm. First match kicks off at 5:30pm, second at 7:00pm.",
             },
           ].map((card) => (
             <div

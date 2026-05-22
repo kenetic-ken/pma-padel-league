@@ -12,7 +12,7 @@ export const teams: Team[] = [
   { id: 5, name: "The Silver Nagas", players: "Rick & Mehdi" },
   { id: 6, name: "Island Storm", players: "Tim & Adam & Todd" },
   { id: 7, name: "Eight Eyes", players: "Justin & Ben" },
-  { id: 8, name: "Anzacs", players: "Phil & Adam" },
+  { id: 8, name: "Court Jesters", players: "Phil & Adam" },
 ];
 
 export function getTeamById(id: number): Team | undefined {

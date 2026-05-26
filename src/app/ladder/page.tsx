@@ -43,11 +43,11 @@ export default async function LadderPage() {
             backgroundColor: "#111",
             borderBottom: "1px solid #222",
             display: "grid",
-            gridTemplateColumns: "48px 1fr 72px 72px 72px 72px",
+            gridTemplateColumns: "48px 1fr 72px 90px 90px 72px",
             padding: "12px 20px",
           }}
         >
-          {["#", "TEAM", "P", "W", "L", "PTS"].map((h) => (
+          {["#", "TEAM", "P", "Sets W", "Sets L", "PTS"].map((h) => (
             <div
               key={h}
               style={{
@@ -75,7 +75,7 @@ export default async function LadderPage() {
               key={entry.teamId}
               style={{
                 display: "grid",
-                gridTemplateColumns: "48px 1fr 72px 72px 72px 72px",
+                gridTemplateColumns: "48px 1fr 72px 90px 90px 72px",
                 padding: "16px 20px",
                 borderBottom: index < ladder.length - 1 ? "1px solid #1a1a1a" : "none",
                 backgroundColor: index % 2 === 0 ? "#0d0d0d" : "#0f0f0f",

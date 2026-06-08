@@ -22,11 +22,14 @@ export default async function SchedulePage() {
 
   // Determine current round
   const today = new Date();
-  let currentRound = 1;
-  for (const round of schedule) {
+  today.setHours(0, 0, 0, 0);
+
+  const upcomingRound = schedule.find((round) => {
     const roundDate = new Date(round.date + "T00:00:00");
-    if (roundDate <= today) currentRound = round.round;
-  }
+    return roundDate >= today;
+  });
+
+  const currentRound = upcomingRound?.round ?? schedule[schedule.length - 1]?.round ?? 1;
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-16">

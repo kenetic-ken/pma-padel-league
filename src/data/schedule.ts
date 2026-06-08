@@ -36,7 +36,7 @@ export const schedule: Round[] = [
     round: 3,
     date: "2026-06-09",
     matches: [
-      { id: "r3m1", home: 1, away: 6 },
+      { id: "r3m1", home: 1, away: 6, time: "7:30pm" },
       { id: "r3m2", home: 7, away: 5 },
       { id: "r3m3", home: 8, away: 4 },
       { id: "r3m4", home: 2, away: 3 },

@@ -43,11 +43,11 @@ export default async function LadderPage() {
             backgroundColor: "#111",
             borderBottom: "1px solid #222",
             display: "grid",
-            gridTemplateColumns: "48px 1fr 72px 90px 90px 72px",
+            gridTemplateColumns: "48px 1fr 72px 90px 90px 90px 72px",
             padding: "12px 20px",
           }}
         >
-          {["#", "TEAM", "P", "Sets W", "Sets L", "PTS"].map((h) => (
+          {["#", "TEAM", "P", "Sets W", "Sets L", "G Ratio", "PTS"].map((h) => (
             <div
               key={h}
               style={{
@@ -75,7 +75,7 @@ export default async function LadderPage() {
               key={entry.teamId}
               style={{
                 display: "grid",
-                gridTemplateColumns: "48px 1fr 72px 90px 90px 72px",
+                gridTemplateColumns: "48px 1fr 72px 90px 90px 90px 72px",
                 padding: "16px 20px",
                 borderBottom: index < ladder.length - 1 ? "1px solid #1a1a1a" : "none",
                 backgroundColor: index % 2 === 0 ? "#0d0d0d" : "#0f0f0f",
@@ -120,6 +120,13 @@ export default async function LadderPage() {
               <div style={{ textAlign: "center", color: "#9ca3af" }}>
                 {entry.played === 0 ? "—" : entry.setsLost}
               </div>
+              <div style={{ textAlign: "center", color: "#9ca3af" }}>
+                {entry.gamesWon === 0 && entry.gamesLost === 0
+                  ? "—"
+                  : entry.gamesLost === 0
+                  ? "∞"
+                  : (entry.gamesWon / entry.gamesLost).toFixed(2)}
+              </div>
               <div
                 style={{
                   textAlign: "center",
@@ -137,7 +144,7 @@ export default async function LadderPage() {
       </div>
 
       <p className="mt-6 text-xs text-gray-600" style={{ letterSpacing: "0.05em" }}>
-        PTS = sets won · Tiebreaker: sets won / played ratio
+        PTS = sets won · Tiebreaker: games won / games lost ratio
       </p>
     </div>
   );

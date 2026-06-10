@@ -1,5 +1,5 @@
 import { ResultsMap, computeLadder } from "@/data/schedule";
-import { getTeamName } from "@/data/teams";
+import { getTeamById, getTeamName } from "@/data/teams";
 import { kv } from "@vercel/kv";
 
 async function getResults(): Promise<ResultsMap> {
@@ -33,8 +33,139 @@ export default async function LadderPage() {
         </h1>
       </div>
 
-      {/* Table */}
+      {/* Mobile card layout (hidden on md+) */}
       <div
+        className="md:hidden"
+        style={{ border: "1px solid #222", borderRadius: "4px", overflow: "hidden" }}
+      >
+        {ladder.map((entry, index) => {
+          const rank = index + 1;
+          const isTop2 = rank <= 2;
+          const isTop3 = rank <= 3;
+          const accentColor = isTop2 ? "#BFFF00" : isTop3 ? "#888" : "#fff";
+          const team = getTeamById(entry.teamId);
+          const teamName = team ? team.name : `Team ${entry.teamId}`;
+          const playerNames = team ? team.players : "";
+
+          const ratio =
+            entry.gamesWon === 0 && entry.gamesLost === 0
+              ? "—"
+              : entry.gamesLost === 0 && entry.gamesWon > 0
+              ? "∞"
+              : entry.played === 0
+              ? "—"
+              : (entry.gamesWon / entry.gamesLost).toFixed(2);
+
+          const statsLine =
+            entry.played === 0
+              ? "—"
+              : `${entry.played}P · ${entry.gamesWon}W · ${entry.gamesLost}L · ${ratio}`;
+
+          return (
+            <div
+              key={entry.teamId}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "14px 16px",
+                borderBottom: index < ladder.length - 1 ? "1px solid #1a1a1a" : "none",
+                backgroundColor: index % 2 === 0 ? "#0d0d0d" : "#0f0f0f",
+              }}
+            >
+              {/* Left: rank + team info */}
+              <div style={{ display: "flex", alignItems: "center", gap: "14px", minWidth: 0 }}>
+                {/* Rank */}
+                <div
+                  style={{
+                    fontFamily: "var(--font-bebas)",
+                    fontSize: "2rem",
+                    color: accentColor,
+                    lineHeight: 1,
+                    minWidth: "28px",
+                    textAlign: "center",
+                  }}
+                >
+                  {rank}
+                </div>
+
+                {/* Team name + players */}
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                    <span
+                      style={{
+                        fontWeight: isTop2 ? 600 : 400,
+                        color: isTop2 ? "#fff" : "#d1d5db",
+                        fontSize: "0.95rem",
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      {teamName}
+                    </span>
+                    {isTop2 && (
+                      <span
+                        style={{
+                          fontSize: "0.55rem",
+                          letterSpacing: "0.1em",
+                          backgroundColor: "#BFFF00",
+                          color: "#0d0d0d",
+                          padding: "1px 5px",
+                          borderRadius: "2px",
+                          fontWeight: 700,
+                          verticalAlign: "middle",
+                        }}
+                      >
+                        TOP
+                      </span>
+                    )}
+                  </div>
+                  {playerNames && (
+                    <div
+                      style={{
+                        fontSize: "0.72rem",
+                        color: "#6b7280",
+                        marginTop: "2px",
+                        letterSpacing: "0.02em",
+                      }}
+                    >
+                      {playerNames}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Right: PTS + stats */}
+              <div style={{ textAlign: "right", flexShrink: 0, marginLeft: "12px" }}>
+                <div
+                  style={{
+                    fontFamily: "var(--font-bebas)",
+                    fontSize: "1.8rem",
+                    color: accentColor,
+                    lineHeight: 1,
+                  }}
+                >
+                  {entry.played === 0 ? "—" : entry.points}
+                </div>
+                <div
+                  style={{
+                    fontSize: "0.65rem",
+                    color: "#6b7280",
+                    marginTop: "2px",
+                    letterSpacing: "0.03em",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {statsLine}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Desktop table layout (hidden on mobile, shown md+) */}
+      <div
+        className="hidden md:block"
         style={{ border: "1px solid #222", borderRadius: "4px", overflow: "hidden" }}
       >
         {/* Header */}

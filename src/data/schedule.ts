@@ -101,6 +101,8 @@ export interface LadderEntry {
   played: number;
   setsWon: number;
   setsLost: number;
+  gamesWon: number;
+  gamesLost: number;
   points: number;
 }
 
@@ -109,7 +111,7 @@ export function computeLadder(results: ResultsMap): LadderEntry[] {
 
   // Initialize all 8 teams
   for (let i = 1; i <= 8; i++) {
-    map[i] = { teamId: i, played: 0, setsWon: 0, setsLost: 0, points: 0 };
+    map[i] = { teamId: i, played: 0, setsWon: 0, setsLost: 0, gamesWon: 0, gamesLost: 0, points: 0 };
   }
 
   for (const round of schedule) {
@@ -125,12 +127,28 @@ export function computeLadder(results: ResultsMap): LadderEntry[] {
         else if (set.away > set.home) awaySetsWon++;
       }
 
+      let homeGamesWon = 0;
+      let homeGamesLost = 0;
+      let awayGamesWon = 0;
+      let awayGamesLost = 0;
+
+      for (const set of result.sets) {
+        homeGamesWon += set.home;
+        homeGamesLost += set.away;
+        awayGamesWon += set.away;
+        awayGamesLost += set.home;
+      }
+
       map[match.home].played++;
       map[match.away].played++;
       map[match.home].setsWon += homeSetsWon;
       map[match.home].setsLost += awaySetsWon;
       map[match.away].setsWon += awaySetsWon;
       map[match.away].setsLost += homeSetsWon;
+      map[match.home].gamesWon += homeGamesWon;
+      map[match.home].gamesLost += homeGamesLost;
+      map[match.away].gamesWon += awayGamesWon;
+      map[match.away].gamesLost += awayGamesLost;
       map[match.home].points += homeSetsWon;
       map[match.away].points += awaySetsWon;
     }
@@ -138,8 +156,8 @@ export function computeLadder(results: ResultsMap): LadderEntry[] {
 
   return Object.values(map).sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points;
-    const aRatio = a.played > 0 ? a.setsWon / a.played : 0;
-    const bRatio = b.played > 0 ? b.setsWon / b.played : 0;
+    const aRatio = a.gamesLost === 0 ? Infinity : a.gamesWon / a.gamesLost;
+    const bRatio = b.gamesLost === 0 ? Infinity : b.gamesWon / b.gamesLost;
     return bRatio - aRatio;
   });
 }

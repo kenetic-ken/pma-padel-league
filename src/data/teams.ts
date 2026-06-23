@@ -6,7 +6,7 @@ export interface Team {
 
 export const teams: Team[] = [
   { id: 1, name: "Lobsters", players: "Damon & Scott" },
-  { id: 2, name: "Singkenken", players: "Ken & Niko" },
+  { id: 2, name: "Singkenken", players: "Ken & Federico" },
   { id: 3, name: "Padel to the Metal", players: "Troy & Fab" },
   { id: 4, name: "The B Team", players: "JB & Dave" },
   { id: 5, name: "The Silver Nagas", players: "Rick & Mehdi" },

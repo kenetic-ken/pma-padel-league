@@ -10,6 +10,7 @@ const navLinks = [
   { href: "/ladder", label: "Ladder" },
   { href: "/results", label: "Results" },
   { href: "/rules", label: "Rules" },
+  { href: "/archive", label: "Archive" },
 ];
 
 export default function Nav() {

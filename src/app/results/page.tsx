@@ -8,6 +8,7 @@ import { RoundAnchor, RoundJumpNav } from "@/components/ui/RoundJumpNav";
 import {
   currentSeason,
   formatLongDate,
+  fixturesPending,
   playedRounds,
   seasonStart,
 } from "@/data/seasons";
@@ -44,6 +45,9 @@ export default async function ResultsPage() {
             {start
               ? `${season.label} kicks off ${formatLongDate(start)}.`
               : "Fixtures to be announced."}
+            {fixturesPending(season)
+              ? " Round fixtures follow the qualifier seeding."
+              : null}
           </p>
           <Link
             href="/schedule"

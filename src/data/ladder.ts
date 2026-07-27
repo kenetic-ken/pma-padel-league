@@ -1,15 +1,43 @@
-import type { LadderEntry, ResultsMap, Round, Team } from "./types";
+import type {
+  LadderEntry,
+  ResultsMap,
+  Round,
+  ScoringRule,
+  Team,
+} from "./types";
 
 /**
- * League points = sets won. Tiebreaker = games won / games lost ratio.
+ * League points earned by each side of a completed match.
  *
- * This is the original Season 1 scoring logic, unchanged in behaviour — it now
- * takes the rounds and teams as arguments so it can be reused per season.
+ * `sets` (Season 1) — a point per set won, so three points are shared out.
+ * `sets-plus-win` (Season 2) — a point per set won plus one for taking the
+ * match, so every fixture is worth exactly four points: 4–0 for a 3–0, 3–1 for
+ * a 2–1.
+ */
+export function matchPoints(
+  homeSets: number,
+  awaySets: number,
+  rule: ScoringRule,
+): { home: number; away: number } {
+  if (rule === "sets") {
+    return { home: homeSets, away: awaySets };
+  }
+  return {
+    home: homeSets + (homeSets > awaySets ? 1 : 0),
+    away: awaySets + (awaySets > homeSets ? 1 : 0),
+  };
+}
+
+/**
+ * Standings for a set of rounds. Tiebreaker is games won per game lost.
+ *
+ * Season 1's behaviour is preserved exactly by passing `rule: "sets"`.
  */
 export function computeLadder(
   rounds: Round[],
   teams: Team[],
   results: ResultsMap,
+  rule: ScoringRule = "sets",
 ): LadderEntry[] {
   const map = new Map<number, LadderEntry>();
 
@@ -46,6 +74,8 @@ export function computeLadder(
         awayGames += set.away;
       }
 
+      const points = matchPoints(homeSetsWon, awaySetsWon, rule);
+
       home.played++;
       away.played++;
       home.setsWon += homeSetsWon;
@@ -56,8 +86,8 @@ export function computeLadder(
       home.gamesLost += awayGames;
       away.gamesWon += awayGames;
       away.gamesLost += homeGames;
-      home.points += homeSetsWon;
-      away.points += awaySetsWon;
+      home.points += points.home;
+      away.points += points.away;
     }
   }
 

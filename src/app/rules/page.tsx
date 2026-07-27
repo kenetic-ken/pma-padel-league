@@ -4,6 +4,7 @@ import {
   CalendarIcon,
   CourtIcon,
   PaddleIcon,
+  PointsIcon,
   ScaleIcon,
   SparkIcon,
   TrophyIcon,
@@ -11,70 +12,72 @@ import {
 import { PadelCourt } from "@/components/graphics/PadelCourt";
 import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
-import {
-  currentSeason,
-  formatLongDate,
-  seasonEnd,
-  seasonStart,
-} from "@/data/seasons";
+import { currentSeason, formatLongDate } from "@/data/seasons";
 
 export const metadata: Metadata = {
   title: "Rules",
-  description: `Format, scoring and etiquette for the PMA Tuesday Padel League ${currentSeason.label}.`,
+  description: `Format, scoring and culture for the PMA Padel League ${currentSeason.label}.`,
 };
+
+type IconComponent = (props: {
+  className?: string;
+  strokeWidth?: number;
+}) => React.ReactElement;
 
 export default function RulesPage() {
   const season = currentSeason;
-  const start = seasonStart(season);
-  const end = seasonEnd(season);
-  const dates =
-    start && end
-      ? `${formatLongDate(start)} – ${formatLongDate(end)}`
-      : undefined;
+  const { qualifier, finals, divisions } = season;
 
   const sections: {
     title: string;
-    Icon: (props: {
-      className?: string;
-      strokeWidth?: number;
-    }) => React.ReactElement;
+    Icon: IconComponent;
     items: string[];
   }[] = [
     {
-      title: "Format",
+      title: "Match format",
       Icon: CalendarIcon,
       items: [
-        dates
-          ? `${season.label}: ${dates}`
-          : `${season.label} dates to be confirmed`,
-        `${season.teams.length} teams, ${season.schedule.length}-week round robin — every team plays each other once`,
-        `${season.matchDay} at ${season.defaultTime} · 120-minute slot · arrive 10 minutes early`,
+        `${season.bookingMinutes}-minute court bookings`,
+        "Arrive at least 10 minutes early",
+        "Be ready to start at the scheduled match time",
+        "Matches are played over three sets",
       ],
     },
     {
       title: "Scoring",
       Icon: CourtIcon,
       items: [
-        "Three full sets, standard padel scoring",
-        "Maximum two deuces per game",
-        "Third deuce is a golden point — sudden death",
+        "Standard padel scoring",
+        "Two deuces are played normally",
+        "At the third deuce, the next point is Golden Point",
+        "The receiving team chooses the receiving side",
       ],
     },
     {
-      title: "League points",
-      Icon: TrophyIcon,
+      title: "Shootout 15",
+      Icon: BallIcon,
       items: [
-        "Win a set, win one league point",
-        "3–0 win = 3 points to the winner, 0 to the loser",
-        "2–1 win = 2 points to the winner, 1 to the loser",
-        "Every set counts — never give up",
+        "If roughly under 30 minutes remain before the third set begins, play a Shootout 15",
+        "First to 15 points, win by 2",
+        "Counts as the third set",
+        "Standard tie-break serving rotation",
+        "Use common sense — the objective is to finish inside the booking",
+      ],
+    },
+    {
+      title: "Ladder points",
+      Icon: PointsIcon,
+      items: [
+        "Each match is worth 4 ladder points",
+        "1 point for each set, and an extra point for the match winner",
+        "Winning the match matters. Every set matters",
       ],
     },
     {
       title: "Ladder tiebreaker",
       Icon: ScaleIcon,
       items: [
-        "Primary: total league points (sets won)",
+        "Primary: total ladder points",
         "Secondary: games won ÷ games lost",
         "Then: head-to-head result",
       ],
@@ -83,27 +86,29 @@ export default function RulesPage() {
       title: "Substitutes",
       Icon: PaddleIcon,
       items: [
-        "Subs allowed from the PMA community",
-        "Keep it fair — no ringers",
-        "Let the league know ahead of time",
+        "Teams organise their own substitutes",
+        "Subs should come from the PMA community",
+        "Keep substitutions fair",
+        "No Gold-level ringers",
       ],
     },
     {
-      title: "Balls",
-      Icon: BallIcon,
-      items: [
-        "New or fairly new balls every match",
-        "Split the cost between both teams",
-        "Each team brings three balls minimum",
-      ],
-    },
-    {
-      title: "The vibe",
+      title: "PMA culture",
       Icon: SparkIcon,
       items: [
-        "Competitive, social and fun — this is silver level",
-        "No egos. Good sportsmanship always",
-        "Celebrate great shots, even your opponent's",
+        "Competitive, social and fun",
+        "Primarily for older Silver-level players",
+        "Good games. Good people. Good banter",
+        "Leave the ego at the door. No dickheads",
+        "Nobody's getting scouted",
+      ],
+    },
+    {
+      title: "Fair play",
+      Icon: TrophyIcon,
+      items: [
+        "If in doubt, replay the point",
+        "Life's too short to argue over social padel",
       ],
     },
   ];
@@ -111,11 +116,88 @@ export default function RulesPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
       <PageHeader
-        eyebrow={`${season.label} · ${season.venue}`}
+        eyebrow={`${season.label} · ${season.matchDay}`}
         title="Rules"
         sub="Everything you need to know before Tuesday."
       />
 
+      {/* ------------------------------------------------- Season structure */}
+      <Card className="mb-6 p-5 sm:p-6">
+        <h2 className="font-display text-title text-accent">
+          How the season works
+        </h2>
+        <ol className="mt-4 space-y-4">
+          {qualifier ? (
+            <Step
+              n={1}
+              title={qualifier.name}
+              meta={`${formatLongDate(qualifier.date)} · ${qualifier.venue}`}
+            >
+              {qualifier.format} across {qualifier.courts} courts. All 16 teams
+              play 10 matches. The top 8 qualify for the Silver Devils, the
+              remaining 8 for the Silver Foxes.{" "}
+              {qualifier.note ? (
+                <span className="text-fg-subtle">{qualifier.note}</span>
+              ) : null}
+            </Step>
+          ) : null}
+          <Step
+            n={qualifier ? 2 : 1}
+            title="Regular season"
+            meta={`${season.schedule.length} rounds${divisions ? " per division" : ""}`}
+          >
+            Each division plays a {season.schedule.length}-round round robin.
+            {divisions
+              ? ` ${divisions.map((d) => `${d.name} at ${d.venue}`).join(", ")}.`
+              : null}
+          </Step>
+          {finals ? (
+            <Step
+              n={qualifier ? 3 : 2}
+              title={finals.name}
+              meta={formatLongDate(finals.date)}
+            >
+              {finals.intro}
+            </Step>
+          ) : null}
+        </ol>
+      </Card>
+
+      {/* ------------------------------------------------------- Divisions */}
+      {divisions ? (
+        <div className="mb-6 grid gap-4 sm:grid-cols-2">
+          {divisions.map((division) => (
+            <Card key={division.slug} className="p-5">
+              <h2 className="font-display text-title text-accent">
+                {division.name}
+              </h2>
+              <p className="mt-1.5 text-sm text-fg-muted">
+                {division.blurb} Eight teams over {season.schedule.length}{" "}
+                regular-season rounds, at {division.venue}.
+              </p>
+              <p className="mt-4 text-label font-semibold text-fg-subtle uppercase">
+                The goal
+              </p>
+              <ul className="mt-2 space-y-1.5">
+                {division.goals.map((goal) => (
+                  <li
+                    key={goal}
+                    className="relative pl-4 text-sm leading-relaxed text-fg-muted"
+                  >
+                    <span
+                      aria-hidden
+                      className="absolute top-2.5 left-0 size-1 rounded-full bg-accent"
+                    />
+                    {goal}
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          ))}
+        </div>
+      ) : null}
+
+      {/* ----------------------------------------------------- Rule cards */}
       <div className="grid gap-4 sm:grid-cols-2">
         {sections.map((section) => (
           <Card key={section.title} className="p-5">
@@ -153,14 +235,45 @@ export default function RulesPage() {
         />
         <div className="relative">
           <p className="font-display text-2xl text-accent sm:text-3xl">
-            Play hard. Stay humble. Have fun.
+            Good games. Good people. Good banter.
           </p>
           <p className="mt-2 text-sm text-fg-muted">
-            This league is about getting better together. Good games, good vibes
-            — see you Tuesday.
+            If in doubt, replay the point. Life&rsquo;s too short to argue over
+            social padel.
           </p>
         </div>
       </Card>
     </div>
+  );
+}
+
+function Step({
+  n,
+  title,
+  meta,
+  children,
+}: {
+  n: number;
+  title: string;
+  meta?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <li className="flex gap-4">
+      <span className="font-display nums flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-lg leading-none text-accent-ink">
+        {n}
+      </span>
+      <div className="min-w-0 pt-1">
+        <p className="text-[0.9375rem] leading-tight font-semibold text-fg">
+          {title}
+        </p>
+        {meta ? (
+          <p className="mt-1 text-label font-medium text-fg-subtle uppercase">
+            {meta}
+          </p>
+        ) : null}
+        <p className="mt-2 text-sm leading-relaxed text-fg-muted">{children}</p>
+      </div>
+    </li>
   );
 }

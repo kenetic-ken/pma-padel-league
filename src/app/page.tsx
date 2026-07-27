@@ -1,9 +1,11 @@
 import Link from "next/link";
 import {
   BallIcon,
+  CalendarIcon,
   CourtIcon,
-  PinIcon,
   PointsIcon,
+  SparkIcon,
+  TrophyIcon,
 } from "@/components/graphics/icons";
 import { CourtHorizon } from "@/components/graphics/PadelCourt";
 import { Badge } from "@/components/ui/Badge";
@@ -14,14 +16,17 @@ import { StatTile } from "@/components/ui/StatTile";
 import { computeLadder } from "@/data/ladder";
 import {
   currentSeason,
+  divisionTeams,
+  divisionsAssigned,
   formatRoundDate,
   formatShortDate,
+  formatWeekdayLong,
   isSeasonFinished,
   latestPlayedRound,
   nextUnplayedRound,
+  roundsFor,
   seasonEnd,
   seasonStart,
-  teamById,
 } from "@/data/seasons";
 import { getResults } from "@/lib/results";
 import { cn } from "@/lib/cn";
@@ -32,8 +37,8 @@ export default async function HomePage() {
   const season = currentSeason;
   const results = await getResults();
   const finished = isSeasonFinished(season);
-  const ladder = computeLadder(season.schedule, season.teams, results);
-  const anyPlayed = ladder.some((e) => e.played > 0);
+  const assigned = divisionsAssigned(season);
+  const { qualifier, finals, divisions } = season;
 
   const nextRound = finished ? undefined : nextUnplayedRound(season, results);
   const lastRound = latestPlayedRound(season, results);
@@ -95,60 +100,68 @@ export default async function HomePage() {
     });
   }
 
-  if (anyPlayed) {
-    segments.push({
-      id: "ladder",
-      label: finished ? "Final four" : "Top four",
-      content: (
-        <Card>
-          <CardHeader
-            title={finished ? "Final ladder" : "Ladder"}
-            meta="Top 4"
-          />
-          <CardRows>
-            {ladder.slice(0, 4).map((entry, index) => {
-              const team = teamById(season, entry.teamId);
-              return (
-                <div
-                  key={entry.teamId}
-                  className="flex items-center gap-3 px-4 py-3 sm:px-5"
-                >
-                  <span
-                    className={cn(
-                      "font-display nums w-6 text-center text-xl leading-none",
-                      index < 2 ? "text-accent" : "text-fg-muted",
-                    )}
+  // Once divisions exist and are populated, show the top of each ladder.
+  if (divisions && assigned) {
+    for (const division of divisions) {
+      const teams = divisionTeams(season, division);
+      const ladder = computeLadder(
+        roundsFor(season, division),
+        teams,
+        results,
+        season.scoring,
+      );
+      if (!ladder.some((e) => e.played > 0)) continue;
+      segments.push({
+        id: division.slug,
+        label: division.name,
+        content: (
+          <Card>
+            <CardHeader title={division.name} meta="Top 4" />
+            <CardRows>
+              {ladder.slice(0, 4).map((entry, index) => {
+                const team = teams.find((t) => t.id === entry.teamId);
+                return (
+                  <div
+                    key={entry.teamId}
+                    className="flex items-center gap-3 px-4 py-3 sm:px-5"
                   >
-                    {index + 1}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[0.9375rem] leading-tight text-fg">
-                      {team?.name ?? `Team ${entry.teamId}`}
-                    </p>
-                    <p className="mt-0.5 truncate text-xs text-fg-subtle">
-                      {team?.players}
-                    </p>
+                    <span
+                      className={cn(
+                        "font-display nums w-6 text-center text-xl leading-none",
+                        index < 2 ? "text-accent" : "text-fg-muted",
+                      )}
+                    >
+                      {index + 1}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[0.9375rem] leading-tight text-fg">
+                        {team?.name}
+                      </p>
+                      <p className="mt-0.5 truncate text-xs text-fg-subtle">
+                        {team?.players}
+                      </p>
+                    </div>
+                    <span className="nums text-xs text-fg-subtle">
+                      {entry.played}P
+                    </span>
+                    <span
+                      className={cn(
+                        "font-display nums min-w-8 rounded-[3px] px-1.5 py-0.5 text-center text-lg leading-tight",
+                        index < 2
+                          ? "bg-accent text-accent-ink"
+                          : "bg-surface-raised text-fg",
+                      )}
+                    >
+                      {entry.points}
+                    </span>
                   </div>
-                  <span className="nums text-xs text-fg-subtle">
-                    {entry.played}P
-                  </span>
-                  <span
-                    className={cn(
-                      "font-display nums min-w-8 rounded-[3px] px-1.5 py-0.5 text-center text-lg leading-tight",
-                      index < 2
-                        ? "bg-accent text-accent-ink"
-                        : "bg-surface-raised text-fg",
-                    )}
-                  >
-                    {entry.points}
-                  </span>
-                </div>
-              );
-            })}
-          </CardRows>
-        </Card>
-      ),
-    });
+                );
+              })}
+            </CardRows>
+          </Card>
+        ),
+      });
+    }
   }
 
   return (
@@ -168,46 +181,122 @@ export default async function HomePage() {
           <h1 className="font-display mt-5 text-hero text-fg">
             PMA
             <br />
-            <span className="text-accent">Tuesday</span>
+            <span className="text-accent">Padel</span>
             <br />
             League
           </h1>
 
-          <p className="mt-5 text-eyebrow font-medium text-fg-muted uppercase">
-            {season.venue} · {season.matchDay} · {season.defaultTime}
+          <p className="mx-auto mt-5 max-w-md text-lg leading-snug text-fg">
+            {season.tagline}
+          </p>
+          <p className="mt-3 text-eyebrow font-medium text-fg-muted uppercase">
+            {season.venue} · {season.matchDay}
           </p>
 
           <div className="mx-auto mt-10 grid max-w-lg grid-cols-2 gap-y-7 sm:max-w-2xl sm:grid-cols-4">
-            <StatTile value={season.teams.length} label="Teams" />
-            <StatTile value={season.schedule.length} label="Rounds" />
+            <StatTile value={16} label="Teams" />
+            <StatTile
+              value={divisions ? divisions.length : 1}
+              label="Divisions"
+            />
             {start ? (
-              <StatTile value={formatShortDate(start)} label="Season start" />
+              <StatTile value={formatShortDate(start)} label="Qualifier" />
             ) : null}
             {end ? (
-              <StatTile value={formatShortDate(end)} label="Season end" />
+              <StatTile value={formatShortDate(end)} label="Finals night" />
             ) : null}
           </div>
 
           <div className="mt-10 flex flex-wrap justify-center gap-3">
             <Link
-              href="/ladder"
+              href="/schedule"
               className="rounded-chip bg-accent px-6 py-3 text-label font-semibold text-accent-ink uppercase transition-opacity hover:opacity-90"
             >
-              {finished ? "Final ladder" : "View ladder"}
+              See schedule
             </Link>
             <Link
-              href="/schedule"
+              href="/rules"
               className="rounded-chip px-6 py-3 text-label font-semibold text-accent uppercase ring-1 ring-accent/50 ring-inset transition-colors hover:bg-accent/10"
             >
-              See schedule
+              Read the rules
             </Link>
           </div>
         </div>
       </section>
 
+      {/* --------------------------------------------------- Season structure */}
+      <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
+        <h2 className="font-display mb-4 text-title text-fg-muted">
+          The season
+        </h2>
+        <div className="grid gap-4 md:grid-cols-3">
+          {qualifier ? (
+            <StageCard
+              Icon={CalendarIcon}
+              eyebrow={formatWeekdayLong(qualifier.date)}
+              title={qualifier.name}
+              body={`${qualifier.format} at ${qualifier.venue}, ${qualifier.courts} courts. All 16 teams play 10 matches — the top 8 go to the Silver Devils, the rest to the Silver Foxes.`}
+            />
+          ) : null}
+          <StageCard
+            Icon={CourtIcon}
+            eyebrow={`${season.schedule.length} rounds`}
+            title="Regular season"
+            body={`Each division plays a ${season.schedule.length}-round round robin${divisions ? `. ${divisions.map((d) => `${d.name} at ${d.venue}`).join(", ")}` : ""}.`}
+          />
+          {finals ? (
+            <StageCard
+              Icon={TrophyIcon}
+              eyebrow={formatWeekdayLong(finals.date)}
+              title={finals.name}
+              body="Championship, third-place and fifth-place playoffs, promotion and relegation, and a placement match for every Silver Foxes team."
+            />
+          ) : null}
+        </div>
+      </section>
+
+      {/* ---------------------------------------------------------- Divisions */}
+      {divisions ? (
+        <section className="mx-auto max-w-5xl px-4 pb-12 sm:px-6 sm:pb-16">
+          <h2 className="font-display mb-4 text-title text-fg-muted">
+            Two divisions
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {divisions.map((division) => (
+              <Card key={division.slug} className="p-5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="font-display text-title text-accent">
+                    {division.name}
+                  </h3>
+                  <Badge variant="muted">{division.venue}</Badge>
+                </div>
+                <p className="mt-2 text-sm leading-relaxed text-fg-muted">
+                  {division.blurb} Eight teams over {season.schedule.length}{" "}
+                  regular-season rounds.
+                </p>
+                <ul className="mt-3 space-y-1.5">
+                  {division.goals.map((goal) => (
+                    <li
+                      key={goal}
+                      className="relative pl-4 text-sm leading-relaxed text-fg-muted"
+                    >
+                      <span
+                        aria-hidden
+                        className="absolute top-2.5 left-0 size-1 rounded-full bg-accent"
+                      />
+                      {goal}
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       {/* ------------------------------------------------------------ Snapshot */}
       {segments.length > 0 ? (
-        <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
+        <section className="mx-auto max-w-5xl px-4 pb-12 sm:px-6 sm:pb-16">
           <h2 className="font-display mb-4 text-title text-fg-muted">
             The league right now
           </h2>
@@ -221,9 +310,8 @@ export default async function HomePage() {
           How it works
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {formatCards.map((card) => (
+          {formatCards(season.bookingMinutes).map((card) => (
             <Card key={card.title} className="relative overflow-hidden p-5">
-              {/* Oversized watermark of the card's own glyph */}
               <card.Icon
                 className="absolute -top-4 -right-5 size-28 text-accent/[0.055]"
                 strokeWidth={1}
@@ -243,25 +331,53 @@ export default async function HomePage() {
   );
 }
 
-const formatCards = [
-  {
-    title: "3 set format",
-    Icon: CourtIcon,
-    body: "Three full sets, standard padel scoring. Maximum two deuces per game — the third deuce is a golden point.",
-  },
-  {
-    title: "Points system",
-    Icon: PointsIcon,
-    body: "Win a set, win a league point. A 3–0 win earns 3 points; a 2–1 win earns 2 to the winner and 1 to the loser. Every set counts.",
-  },
-  {
-    title: "Good vibes",
-    Icon: BallIcon,
-    body: "Silver level play. Competitive, social, fun. No egos — just good padel with mates.",
-  },
-  {
-    title: "Canggu Padel",
-    Icon: PinIcon,
-    body: "All matches at Canggu Padel every Tuesday. First match at 5:30pm, second at 7:00pm.",
-  },
-];
+function StageCard({
+  Icon,
+  eyebrow,
+  title,
+  body,
+}: {
+  Icon: (props: {
+    className?: string;
+    strokeWidth?: number;
+  }) => React.ReactElement;
+  eyebrow: string;
+  title: string;
+  body: string;
+}) {
+  return (
+    <Card className="p-5">
+      <Icon className="size-6 text-accent" />
+      <p className="mt-3.5 text-label font-semibold text-fg-subtle uppercase">
+        {eyebrow}
+      </p>
+      <h3 className="font-display mt-1 text-title text-accent">{title}</h3>
+      <p className="mt-2 text-sm leading-relaxed text-fg-muted">{body}</p>
+    </Card>
+  );
+}
+
+function formatCards(bookingMinutes: number) {
+  return [
+    {
+      title: "3 set format",
+      Icon: CourtIcon,
+      body: `${bookingMinutes}-minute bookings, three sets. Standard padel scoring — two deuces played normally, then the third deuce is a Golden Point.`,
+    },
+    {
+      title: "4 points a match",
+      Icon: PointsIcon,
+      body: "One ladder point for each set, plus one for the match winner. Winning the match matters. Every set matters.",
+    },
+    {
+      title: "Shootout 15",
+      Icon: BallIcon,
+      body: "Under about 30 minutes left before the third set? Play first to 15, win by 2. It counts as the third set.",
+    },
+    {
+      title: "No dickheads",
+      Icon: SparkIcon,
+      body: "Competitive, social, fun — mostly older Silver-level players. Leave the ego at the door. Nobody's getting scouted.",
+    },
+  ];
+}

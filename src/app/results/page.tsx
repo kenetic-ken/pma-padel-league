@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { EmptyCourt } from "@/components/graphics/EmptyCourt";
 import { Card, CardHeader, CardRows } from "@/components/ui/Card";
 import { MatchRow } from "@/components/ui/MatchRow";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -35,6 +36,7 @@ export default async function ResultsPage() {
 
       {rounds.length === 0 ? (
         <Card className="px-6 py-14 text-center">
+          <EmptyCourt className="mb-8" />
           <p className="font-display text-title text-fg-muted">
             No results yet
           </p>

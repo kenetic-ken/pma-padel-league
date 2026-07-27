@@ -1,4 +1,11 @@
 import Link from "next/link";
+import {
+  BallIcon,
+  CourtIcon,
+  PinIcon,
+  PointsIcon,
+} from "@/components/graphics/icons";
+import { CourtHorizon } from "@/components/graphics/PadelCourt";
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardHeader, CardRows } from "@/components/ui/Card";
 import { MatchRow } from "@/components/ui/MatchRow";
@@ -148,11 +155,11 @@ export default async function HomePage() {
     <>
       {/* ---------------------------------------------------------------- Hero */}
       <section className="relative overflow-hidden border-b border-line/60">
-        <div aria-hidden className="court-grid absolute inset-0" />
         <div
           aria-hidden
-          className="absolute inset-0 bg-[radial-gradient(120%_90%_at_75%_110%,rgba(191,255,0,0.10),transparent_60%)]"
+          className="absolute inset-0 bg-[radial-gradient(115%_85%_at_50%_115%,rgba(191,255,0,0.13),transparent_62%)]"
         />
+        <CourtHorizon />
         <div className="relative mx-auto max-w-4xl px-4 py-16 text-center sm:px-6 sm:py-24">
           <Badge variant={finished ? "muted" : "accent"}>
             {finished ? `${season.label} complete` : season.label}
@@ -215,12 +222,14 @@ export default async function HomePage() {
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {formatCards.map((card) => (
-            <Card key={card.title} className="p-5">
-              <span
-                aria-hidden
-                className="block h-0.5 w-8 rounded-full bg-accent"
+            <Card key={card.title} className="relative overflow-hidden p-5">
+              {/* Oversized watermark of the card's own glyph */}
+              <card.Icon
+                className="absolute -top-4 -right-5 size-28 text-accent/[0.055]"
+                strokeWidth={1}
               />
-              <h3 className="font-display mt-4 text-title text-accent">
+              <card.Icon className="size-6 text-accent" />
+              <h3 className="font-display mt-3.5 text-title text-accent">
                 {card.title}
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-fg-muted">
@@ -237,18 +246,22 @@ export default async function HomePage() {
 const formatCards = [
   {
     title: "3 set format",
+    Icon: CourtIcon,
     body: "Three full sets, standard padel scoring. Maximum two deuces per game — the third deuce is a golden point.",
   },
   {
     title: "Points system",
+    Icon: PointsIcon,
     body: "Win a set, win a league point. A 3–0 win earns 3 points; a 2–1 win earns 2 to the winner and 1 to the loser. Every set counts.",
   },
   {
     title: "Good vibes",
+    Icon: BallIcon,
     body: "Silver level play. Competitive, social, fun. No egos — just good padel with mates.",
   },
   {
     title: "Canggu Padel",
+    Icon: PinIcon,
     body: "All matches at Canggu Padel every Tuesday. First match at 5:30pm, second at 7:00pm.",
   },
 ];

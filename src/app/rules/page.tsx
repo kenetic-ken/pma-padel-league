@@ -1,4 +1,14 @@
 import type { Metadata } from "next";
+import {
+  BallIcon,
+  CalendarIcon,
+  CourtIcon,
+  PaddleIcon,
+  ScaleIcon,
+  SparkIcon,
+  TrophyIcon,
+} from "@/components/graphics/icons";
+import { PadelCourt } from "@/components/graphics/PadelCourt";
 import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import {
@@ -22,9 +32,17 @@ export default function RulesPage() {
       ? `${formatLongDate(start)} – ${formatLongDate(end)}`
       : undefined;
 
-  const sections: { title: string; items: string[] }[] = [
+  const sections: {
+    title: string;
+    Icon: (props: {
+      className?: string;
+      strokeWidth?: number;
+    }) => React.ReactElement;
+    items: string[];
+  }[] = [
     {
       title: "Format",
+      Icon: CalendarIcon,
       items: [
         dates
           ? `${season.label}: ${dates}`
@@ -35,6 +53,7 @@ export default function RulesPage() {
     },
     {
       title: "Scoring",
+      Icon: CourtIcon,
       items: [
         "Three full sets, standard padel scoring",
         "Maximum two deuces per game",
@@ -43,6 +62,7 @@ export default function RulesPage() {
     },
     {
       title: "League points",
+      Icon: TrophyIcon,
       items: [
         "Win a set, win one league point",
         "3–0 win = 3 points to the winner, 0 to the loser",
@@ -52,6 +72,7 @@ export default function RulesPage() {
     },
     {
       title: "Ladder tiebreaker",
+      Icon: ScaleIcon,
       items: [
         "Primary: total league points (sets won)",
         "Secondary: games won ÷ games lost",
@@ -60,6 +81,7 @@ export default function RulesPage() {
     },
     {
       title: "Substitutes",
+      Icon: PaddleIcon,
       items: [
         "Subs allowed from the PMA community",
         "Keep it fair — no ringers",
@@ -68,6 +90,7 @@ export default function RulesPage() {
     },
     {
       title: "Balls",
+      Icon: BallIcon,
       items: [
         "New or fairly new balls every match",
         "Split the cost between both teams",
@@ -76,6 +99,7 @@ export default function RulesPage() {
     },
     {
       title: "The vibe",
+      Icon: SparkIcon,
       items: [
         "Competitive, social and fun — this is silver level",
         "No egos. Good sportsmanship always",
@@ -95,9 +119,12 @@ export default function RulesPage() {
       <div className="grid gap-4 sm:grid-cols-2">
         {sections.map((section) => (
           <Card key={section.title} className="p-5">
-            <h2 className="font-display text-title text-accent">
-              {section.title}
-            </h2>
+            <div className="flex items-center gap-2.5">
+              <section.Icon className="size-5 shrink-0 text-accent" />
+              <h2 className="font-display text-title text-accent">
+                {section.title}
+              </h2>
+            </div>
             <ul className="mt-3 space-y-2">
               {section.items.map((item) => (
                 <li
@@ -116,14 +143,23 @@ export default function RulesPage() {
         ))}
       </div>
 
-      <Card accent className="mt-6 px-6 py-7 text-center">
-        <p className="font-display text-2xl text-accent sm:text-3xl">
-          Play hard. Stay humble. Have fun.
-        </p>
-        <p className="mt-2 text-sm text-fg-muted">
-          This league is about getting better together. Good games, good vibes —
-          see you Tuesday 🎾
-        </p>
+      <Card
+        accent
+        className="relative mt-6 overflow-hidden px-6 py-9 text-center"
+      >
+        <PadelCourt
+          className="absolute top-1/2 left-1/2 w-[135%] max-w-none -translate-x-1/2 -translate-y-1/2 text-accent/[0.07]"
+          strokeWidth={0.045}
+        />
+        <div className="relative">
+          <p className="font-display text-2xl text-accent sm:text-3xl">
+            Play hard. Stay humble. Have fun.
+          </p>
+          <p className="mt-2 text-sm text-fg-muted">
+            This league is about getting better together. Good games, good vibes
+            — see you Tuesday.
+          </p>
+        </div>
       </Card>
     </div>
   );

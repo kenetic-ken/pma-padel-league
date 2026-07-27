@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { cn } from "@/lib/cn";
 
 const navLinks = [
   { href: "/schedule", label: "Schedule" },
@@ -12,82 +14,108 @@ const navLinks = [
 
 export default function Nav() {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+
+  const isActive = (href: string) =>
+    pathname === href || pathname.startsWith(`${href}/`);
 
   return (
-    <nav
-      style={{ backgroundColor: "#0d0d0d", borderBottom: "1px solid #222" }}
-      className="sticky top-0 z-50"
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link
-            href="/"
-            style={{ fontFamily: "var(--font-bebas)", color: "#BFFF00", fontSize: "1.6rem", letterSpacing: "0.05em" }}
-          >
-            PMA PADEL
-          </Link>
+    <nav className="sticky top-0 z-50 border-b border-line/70 bg-canvas/90 backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
+        <Link
+          href="/"
+          className="font-display text-2xl leading-none tracking-[0.06em] text-accent"
+        >
+          PMA Padel
+        </Link>
 
-          {/* Desktop Links */}
-          <div className="hidden md:flex items-center gap-8">
+        <div className="hidden items-center gap-1 md:flex">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              aria-current={isActive(link.href) ? "page" : undefined}
+              className={cn(
+                "rounded-chip px-3 py-2 text-label font-semibold uppercase transition-colors",
+                isActive(link.href)
+                  ? "text-accent"
+                  : "text-fg-muted hover:text-fg",
+              )}
+            >
+              {link.label}
+            </Link>
+          ))}
+          <Link
+            href="/admin"
+            className="ml-2 rounded-chip px-2 py-2 text-label font-semibold text-fg-subtle uppercase transition-colors hover:text-fg-muted"
+          >
+            Admin
+          </Link>
+        </div>
+
+        <button
+          type="button"
+          className="-mr-2 flex size-11 items-center justify-center rounded-block text-fg-muted transition-colors hover:text-fg md:hidden"
+          onClick={() => setOpen(!open)}
+          aria-expanded={open}
+          aria-controls="mobile-menu"
+          aria-label={open ? "Close menu" : "Open menu"}
+        >
+          <svg
+            aria-hidden
+            className="size-6"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            viewBox="0 0 24 24"
+          >
+            {open ? (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 18 18 6M6 6l12 12"
+              />
+            ) : (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4 7h16M4 12h16M4 17h16"
+              />
+            )}
+          </svg>
+        </button>
+      </div>
+
+      {open ? (
+        <div
+          id="mobile-menu"
+          className="border-t border-line/70 bg-canvas md:hidden"
+        >
+          <div className="mx-auto flex max-w-5xl flex-col px-2 py-2">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm font-medium uppercase tracking-widest text-gray-300 hover:text-white transition-colors"
-                style={{ letterSpacing: "0.12em" }}
+                onClick={() => setOpen(false)}
+                aria-current={isActive(link.href) ? "page" : undefined}
+                className={cn(
+                  "rounded-block px-4 py-3 text-label font-semibold uppercase",
+                  isActive(link.href) ? "text-accent" : "text-fg-muted",
+                )}
               >
                 {link.label}
               </Link>
             ))}
             <Link
               href="/admin"
-              className="text-xs text-gray-600 hover:text-gray-400 transition-colors ml-2"
-              title="Admin"
+              onClick={() => setOpen(false)}
+              className="rounded-block px-4 py-3 text-label font-semibold text-fg-subtle uppercase"
             >
-              ⚙
-            </Link>
-          </div>
-
-          {/* Mobile hamburger */}
-          <button
-            className="md:hidden text-gray-400 hover:text-white"
-            onClick={() => setOpen(!open)}
-            aria-label="Toggle menu"
-          >
-            {open ? (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            ) : (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile menu */}
-      {open && (
-        <div style={{ borderTop: "1px solid #222", backgroundColor: "#0d0d0d" }} className="md:hidden">
-          <div className="px-4 py-4 flex flex-col gap-4">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setOpen(false)}
-                className="text-sm font-medium uppercase tracking-widest text-gray-300 hover:text-white transition-colors"
-              >
-                {link.label}
-              </Link>
-            ))}
-            <Link href="/admin" onClick={() => setOpen(false)} className="text-xs text-gray-600">
               Admin
             </Link>
           </div>
         </div>
-      )}
+      ) : null}
     </nav>
   );
 }

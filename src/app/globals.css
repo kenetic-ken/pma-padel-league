@@ -1,29 +1,141 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
-:root {
-  --font-bebas: 'Bebas Neue', sans-serif;
-  --font-inter: 'Inter', sans-serif;
-  --color-accent: #BFFF00;
-  --color-bg: #0d0d0d;
-  --color-card: #111111;
-  --color-border: #222222;
+/* ==========================================================================
+   PMA Padel League — design tokens
+   Surface model borrowed from broadcast padel UI: a near-black canvas with
+   layered grey panels for depth, rather than 1px outlines. Lime is the league
+   accent and is used sparingly — live state, scores, and one CTA per view.
+   ========================================================================== */
+
+@theme {
+  /* -- Surfaces (light-on-dark, layered) -------------------------------- */
+  --color-canvas: #0a0a0a;
+  --color-surface: #161616;
+  --color-surface-raised: #1f1f1f;
+  --color-surface-inset: #101010;
+  --color-line: #2a2a2a;
+  --color-line-strong: #3a3a3a;
+
+  /* -- Accent ----------------------------------------------------------- */
+  --color-accent: #bfff00;
+  --color-accent-dim: #7a9e10;
+  --color-accent-ink: #0a0a0a;
+  /* Tinted surfaces for accent-flavoured panels */
+  --color-accent-wash: #131a02;
+  --color-accent-edge: #2f3d09;
+
+  /* -- Foreground (all >= 4.5:1 on --color-canvas) ---------------------- */
+  --color-fg: #ffffff;
+  --color-fg-muted: #a1a1a1;
+  --color-fg-subtle: #7a7a7a;
+
+  /* -- Status ----------------------------------------------------------- */
+  --color-live: #4ade80;
+
+  /* -- Typography ------------------------------------------------------- */
+  --font-display: var(--font-bebas), "Bebas Neue", sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  /* Display scale — fluid, for Bebas headings */
+  --text-hero: clamp(3.5rem, 11vw, 8rem);
+  --text-hero--line-height: 0.88;
+  --text-hero--letter-spacing: 0.01em;
+
+  --text-display: clamp(2.5rem, 7vw, 4rem);
+  --text-display--line-height: 0.92;
+  --text-display--letter-spacing: 0.02em;
+
+  --text-title: 1.5rem;
+  --text-title--line-height: 1.1;
+  --text-title--letter-spacing: 0.04em;
+
+  --text-stat: 2rem;
+  --text-stat--line-height: 1;
+
+  /* Label scale — for Inter, uppercase, tracked out */
+  --text-label: 0.6875rem;
+  --text-label--line-height: 1.2;
+  --text-label--letter-spacing: 0.16em;
+
+  --text-eyebrow: 0.75rem;
+  --text-eyebrow--line-height: 1.2;
+  --text-eyebrow--letter-spacing: 0.2em;
+
+  /* -- Radii ------------------------------------------------------------ */
+  --radius-panel: 0.75rem;
+  --radius-block: 0.5rem;
+  --radius-chip: 0.25rem;
 }
 
-* {
-  box-sizing: border-box;
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    /* Clears the sticky nav plus the sticky round-jump bar on list pages */
+    scroll-padding-top: 8.5rem;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Bebas has no lowercase and reads better with a nudge of tracking */
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    text-transform: uppercase;
+  }
+
+  /* Visible, on-brand focus ring for keyboard users */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 }
 
-html, body {
-  background-color: var(--color-bg);
-  color: #ffffff;
-  font-family: var(--font-inter);
-  margin: 0;
-  padding: 0;
-  -webkit-font-smoothing: antialiased;
+/* ==========================================================================
+   Utilities
+   ========================================================================== */
+
+@utility font-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  text-transform: uppercase;
 }
 
-h1, h2, h3, .display {
-  font-family: var(--font-bebas);
-  letter-spacing: 0.02em;
+/* Faint court-grid texture, used behind the hero */
+@utility court-grid {
+  background-image:
+    linear-gradient(to right, var(--color-accent) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-accent) 1px, transparent 1px);
+  background-size: 64px 64px;
+  opacity: 0.04;
+}
+
+/* Tabular figures — keeps score columns from jittering */
+@utility nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
 }

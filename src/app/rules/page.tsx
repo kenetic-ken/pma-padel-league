@@ -1,169 +1,130 @@
+import type { Metadata } from "next";
+import { Card } from "@/components/ui/Card";
+import { PageHeader } from "@/components/ui/PageHeader";
+import {
+  currentSeason,
+  formatLongDate,
+  seasonEnd,
+  seasonStart,
+} from "@/data/seasons";
+
+export const metadata: Metadata = {
+  title: "Rules",
+  description: `Format, scoring and etiquette for the PMA Tuesday Padel League ${currentSeason.label}.`,
+};
+
 export default function RulesPage() {
-  const sections = [
+  const season = currentSeason;
+  const start = seasonStart(season);
+  const end = seasonEnd(season);
+  const dates =
+    start && end
+      ? `${formatLongDate(start)} – ${formatLongDate(end)}`
+      : undefined;
+
+  const sections: { title: string; items: string[] }[] = [
     {
-      icon: "📅",
-      title: "FORMAT",
+      title: "Format",
       items: [
-        "Season 1: 26 May – 14 July 2026",
-        "8 teams, 7-week round robin — every team plays each other once",
-        "Tuesdays at 5:30pm · 120-minute slot · Arrive 10 mins early",
+        dates
+          ? `${season.label}: ${dates}`
+          : `${season.label} dates to be confirmed`,
+        `${season.teams.length} teams, ${season.schedule.length}-week round robin — every team plays each other once`,
+        `${season.matchDay} at ${season.defaultTime} · 120-minute slot · arrive 10 minutes early`,
       ],
     },
     {
-      icon: "🎾",
-      title: "SCORING",
+      title: "Scoring",
       items: [
-        "Play 3 full sets, standard padel scoring",
-        "Maximum 2 deuces per game",
-        "3rd deuce = golden point (sudden death)",
+        "Three full sets, standard padel scoring",
+        "Maximum two deuces per game",
+        "Third deuce is a golden point — sudden death",
       ],
     },
     {
-      icon: "🏆",
-      title: "LEAGUE POINTS",
+      title: "League points",
       items: [
-        "Win a set = 1 league point",
-        "3–0 win = 3 pts for you, 0 for opponent",
-        "2–1 win = 2 pts for winner, 1 pt for loser",
-        "Every set counts — never give up!",
+        "Win a set, win one league point",
+        "3–0 win = 3 points to the winner, 0 to the loser",
+        "2–1 win = 2 points to the winner, 1 to the loser",
+        "Every set counts — never give up",
       ],
     },
     {
-      icon: "📊",
-      title: "LADDER TIEBREAKER",
+      title: "Ladder tiebreaker",
       items: [
-        "Primary: Total league points (sets won)",
-        "Secondary: Sets won ÷ sets played ratio",
-        "Further: Head-to-head result",
+        "Primary: total league points (sets won)",
+        "Secondary: games won ÷ games lost",
+        "Then: head-to-head result",
       ],
     },
     {
-      icon: "🔄",
-      title: "SUBSTITUTES",
+      title: "Substitutes",
       items: [
         "Subs allowed from the PMA community",
-        "Keep it fair — don't bring ringers",
+        "Keep it fair — no ringers",
         "Let the league know ahead of time",
       ],
     },
     {
-      icon: "🎱",
-      title: "BALLS",
+      title: "Balls",
       items: [
-        "Use new or fairly-new balls each match",
+        "New or fairly new balls every match",
         "Split the cost between both teams",
-        "Each team brings 3 balls minimum",
+        "Each team brings three balls minimum",
       ],
     },
     {
-      icon: "✨",
-      title: "THE VIBE",
+      title: "The vibe",
       items: [
-        "Competitive, social, and fun — this is silver level",
-        "No egos. Good sportsmanship always.",
+        "Competitive, social and fun — this is silver level",
+        "No egos. Good sportsmanship always",
         "Celebrate great shots, even your opponent's",
       ],
     },
   ];
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-16">
-      <div className="mb-12">
-        <p
-          style={{ color: "#BFFF00", fontSize: "0.75rem", letterSpacing: "0.2em", textTransform: "uppercase" }}
-          className="mb-2"
-        >
-          Season 1 · 2026
-        </p>
-        <h1
-          style={{ fontFamily: "var(--font-bebas)", fontSize: "4rem", letterSpacing: "0.02em", lineHeight: 1 }}
-        >
-          RULES
-        </h1>
-      </div>
+    <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
+      <PageHeader
+        eyebrow={`${season.label} · ${season.venue}`}
+        title="Rules"
+        sub="Everything you need to know before Tuesday."
+      />
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid gap-4 sm:grid-cols-2">
         {sections.map((section) => (
-          <div
-            key={section.title}
-            style={{
-              backgroundColor: "#111",
-              border: "1px solid #222",
-              borderRadius: "4px",
-              padding: "1.5rem",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "1rem" }}>
-              <span style={{ fontSize: "1.4rem" }}>{section.icon}</span>
-              <h2
-                style={{
-                  fontFamily: "var(--font-bebas)",
-                  fontSize: "1.4rem",
-                  color: "#BFFF00",
-                  letterSpacing: "0.05em",
-                  margin: 0,
-                }}
-              >
-                {section.title}
-              </h2>
-            </div>
-            <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
-              {section.items.map((item, i) => (
+          <Card key={section.title} className="p-5">
+            <h2 className="font-display text-title text-accent">
+              {section.title}
+            </h2>
+            <ul className="mt-3 space-y-2">
+              {section.items.map((item) => (
                 <li
-                  key={i}
-                  style={{
-                    color: "#9ca3af",
-                    fontSize: "0.9rem",
-                    lineHeight: 1.6,
-                    paddingLeft: "12px",
-                    position: "relative",
-                    marginBottom: "4px",
-                  }}
+                  key={item}
+                  className="relative pl-4 text-sm leading-relaxed text-fg-muted"
                 >
                   <span
-                    style={{
-                      position: "absolute",
-                      left: 0,
-                      color: "#BFFF00",
-                      fontWeight: 700,
-                    }}
-                  >
-                    ·
-                  </span>
+                    aria-hidden
+                    className="absolute top-2.5 left-0 size-1 rounded-full bg-accent"
+                  />
                   {item}
                 </li>
               ))}
             </ul>
-          </div>
+          </Card>
         ))}
       </div>
 
-      {/* Spirit callout */}
-      <div
-        style={{
-          marginTop: "2rem",
-          padding: "1.5rem 2rem",
-          border: "1px solid #BFFF00",
-          borderRadius: "4px",
-          backgroundColor: "#0d1a00",
-          textAlign: "center",
-        }}
-      >
-        <p
-          style={{
-            fontFamily: "var(--font-bebas)",
-            fontSize: "1.8rem",
-            color: "#BFFF00",
-            letterSpacing: "0.05em",
-            marginBottom: "0.5rem",
-          }}
-        >
-          PLAY HARD. STAY HUMBLE. HAVE FUN.
+      <Card accent className="mt-6 px-6 py-7 text-center">
+        <p className="font-display text-2xl text-accent sm:text-3xl">
+          Play hard. Stay humble. Have fun.
         </p>
-        <p style={{ color: "#6b7280", fontSize: "0.85rem" }}>
-          This league is about getting better together. Good games, good vibes, see you Tuesday 🎾
+        <p className="mt-2 text-sm text-fg-muted">
+          This league is about getting better together. Good games, good vibes —
+          see you Tuesday 🎾
         </p>
-      </div>
+      </Card>
     </div>
   );
 }

@@ -1,12 +1,14 @@
+import { currentSeason } from "@/data/seasons";
+
 export default function Footer() {
   return (
-    <footer
-      style={{ borderTop: "1px solid #222", backgroundColor: "#0d0d0d" }}
-      className="py-8 mt-16"
-    >
-      <div className="max-w-7xl mx-auto px-4 text-center">
-        <p className="text-gray-500 text-sm mb-1">Powered by good vibes 🎾</p>
-        <p className="text-gray-700 text-xs">PMA Tuesday Padel League · Season 1 · 2026</p>
+    <footer className="mt-20 border-t border-line/70 py-10">
+      <div className="mx-auto max-w-5xl px-4 text-center sm:px-6">
+        <p className="text-sm text-fg-muted">Powered by good vibes 🎾</p>
+        <p className="mt-1 text-xs text-fg-subtle">
+          PMA Tuesday Padel League · {currentSeason.label} ·{" "}
+          {currentSeason.venue}
+        </p>
       </div>
     </footer>
   );

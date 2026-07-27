@@ -1,192 +1,254 @@
 import Link from "next/link";
+import { Badge } from "@/components/ui/Badge";
+import { Card, CardHeader, CardRows } from "@/components/ui/Card";
+import { MatchRow } from "@/components/ui/MatchRow";
+import { SegmentedTabs, type Segment } from "@/components/ui/SegmentedTabs";
+import { StatTile } from "@/components/ui/StatTile";
+import { computeLadder } from "@/data/ladder";
+import {
+  currentSeason,
+  formatRoundDate,
+  formatShortDate,
+  isSeasonFinished,
+  latestPlayedRound,
+  nextUnplayedRound,
+  seasonEnd,
+  seasonStart,
+  teamById,
+} from "@/data/seasons";
+import { getResults } from "@/lib/results";
+import { cn } from "@/lib/cn";
 
-export default function HomePage() {
+export const revalidate = 60;
+
+export default async function HomePage() {
+  const season = currentSeason;
+  const results = await getResults();
+  const finished = isSeasonFinished(season);
+  const ladder = computeLadder(season.schedule, season.teams, results);
+  const anyPlayed = ladder.some((e) => e.played > 0);
+
+  const nextRound = finished ? undefined : nextUnplayedRound(season, results);
+  const lastRound = latestPlayedRound(season, results);
+  const start = seasonStart(season);
+  const end = seasonEnd(season);
+
+  const segments: Segment[] = [];
+
+  if (nextRound) {
+    segments.push({
+      id: "next",
+      label: "Next up",
+      content: (
+        <Card accent>
+          <CardHeader
+            accent
+            title={`Round ${nextRound.round}`}
+            meta={formatRoundDate(nextRound.date)}
+          />
+          <CardRows>
+            {nextRound.matches.map((match) => (
+              <MatchRow
+                key={match.id}
+                season={season}
+                match={match}
+                result={results[match.id]}
+              />
+            ))}
+          </CardRows>
+        </Card>
+      ),
+    });
+  }
+
+  if (lastRound) {
+    segments.push({
+      id: "results",
+      label: "Latest results",
+      content: (
+        <Card>
+          <CardHeader
+            title={`Round ${lastRound.round}`}
+            meta={formatRoundDate(lastRound.date)}
+          />
+          <CardRows>
+            {lastRound.matches
+              .filter((m) => results[m.id])
+              .map((match) => (
+                <MatchRow
+                  key={match.id}
+                  season={season}
+                  match={match}
+                  result={results[match.id]}
+                />
+              ))}
+          </CardRows>
+        </Card>
+      ),
+    });
+  }
+
+  if (anyPlayed) {
+    segments.push({
+      id: "ladder",
+      label: finished ? "Final four" : "Top four",
+      content: (
+        <Card>
+          <CardHeader
+            title={finished ? "Final ladder" : "Ladder"}
+            meta="Top 4"
+          />
+          <CardRows>
+            {ladder.slice(0, 4).map((entry, index) => {
+              const team = teamById(season, entry.teamId);
+              return (
+                <div
+                  key={entry.teamId}
+                  className="flex items-center gap-3 px-4 py-3 sm:px-5"
+                >
+                  <span
+                    className={cn(
+                      "font-display nums w-6 text-center text-xl leading-none",
+                      index < 2 ? "text-accent" : "text-fg-muted",
+                    )}
+                  >
+                    {index + 1}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[0.9375rem] leading-tight text-fg">
+                      {team?.name ?? `Team ${entry.teamId}`}
+                    </p>
+                    <p className="mt-0.5 truncate text-xs text-fg-subtle">
+                      {team?.players}
+                    </p>
+                  </div>
+                  <span className="nums text-xs text-fg-subtle">
+                    {entry.played}P
+                  </span>
+                  <span
+                    className={cn(
+                      "font-display nums min-w-8 rounded-[3px] px-1.5 py-0.5 text-center text-lg leading-tight",
+                      index < 2
+                        ? "bg-accent text-accent-ink"
+                        : "bg-surface-raised text-fg",
+                    )}
+                  >
+                    {entry.points}
+                  </span>
+                </div>
+              );
+            })}
+          </CardRows>
+        </Card>
+      ),
+    });
+  }
+
   return (
-    <div style={{ backgroundColor: "#0d0d0d" }}>
-      {/* Hero */}
-      <section
-        className="relative overflow-hidden"
-        style={{
-          background: "linear-gradient(135deg, #0d0d0d 0%, #111111 40%, #0d1a00 100%)",
-          minHeight: "90vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        {/* Court grid overlay */}
+    <>
+      {/* ---------------------------------------------------------------- Hero */}
+      <section className="relative overflow-hidden border-b border-line/60">
+        <div aria-hidden className="court-grid absolute inset-0" />
         <div
-          className="absolute inset-0 opacity-5"
-          style={{
-            backgroundImage: `
-              linear-gradient(to right, #BFFF00 1px, transparent 1px),
-              linear-gradient(to bottom, #BFFF00 1px, transparent 1px)
-            `,
-            backgroundSize: "60px 60px",
-          }}
+          aria-hidden
+          className="absolute inset-0 bg-[radial-gradient(120%_90%_at_75%_110%,rgba(191,255,0,0.10),transparent_60%)]"
         />
+        <div className="relative mx-auto max-w-4xl px-4 py-16 text-center sm:px-6 sm:py-24">
+          <Badge variant={finished ? "muted" : "accent"}>
+            {finished ? `${season.label} complete` : season.label}
+          </Badge>
 
-        <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
-          {/* Season badge */}
-          <div className="inline-block mb-6">
-            <span
-              style={{
-                backgroundColor: "#BFFF00",
-                color: "#0d0d0d",
-                fontFamily: "var(--font-bebas)",
-                fontSize: "0.9rem",
-                letterSpacing: "0.2em",
-                padding: "4px 16px",
-                borderRadius: "2px",
-              }}
-            >
-              SEASON 1
-            </span>
-          </div>
-
-          {/* Main heading */}
-          <h1
-            style={{
-              fontFamily: "var(--font-bebas)",
-              fontSize: "clamp(4rem, 12vw, 9rem)",
-              lineHeight: 0.9,
-              letterSpacing: "0.02em",
-              color: "#ffffff",
-              marginBottom: "1.5rem",
-            }}
-          >
-            PMA<br />
-            <span style={{ color: "#BFFF00" }}>TUESDAY</span><br />
-            LEAGUE
+          <h1 className="font-display mt-5 text-hero text-fg">
+            PMA
+            <br />
+            <span className="text-accent">Tuesday</span>
+            <br />
+            League
           </h1>
 
-          {/* Sub-headline */}
-          <p
-            className="text-gray-300 mb-10"
-            style={{ fontSize: "1.1rem", letterSpacing: "0.2em", fontWeight: 300 }}
-          >
-            CANGGU PADEL · TUESDAYS · 5:30PM · SEASON 1
+          <p className="mt-5 text-eyebrow font-medium text-fg-muted uppercase">
+            {season.venue} · {season.matchDay} · {season.defaultTime}
           </p>
 
-          {/* Stats */}
-          <div className="flex justify-center gap-8 md:gap-16 mb-12 flex-wrap">
-            {[
-              { value: "8", label: "Teams" },
-              { value: "7", label: "Rounds" },
-              { value: "26 May", label: "Season Start" },
-              { value: "14 Jul", label: "Season End" },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div
-                  style={{
-                    fontFamily: "var(--font-bebas)",
-                    fontSize: "2.5rem",
-                    color: "#BFFF00",
-                    lineHeight: 1,
-                  }}
-                >
-                  {stat.value}
-                </div>
-                <div
-                  className="text-gray-400 mt-1"
-                  style={{ fontSize: "0.7rem", letterSpacing: "0.15em", textTransform: "uppercase" }}
-                >
-                  {stat.label}
-                </div>
-              </div>
-            ))}
+          <div className="mx-auto mt-10 grid max-w-lg grid-cols-2 gap-y-7 sm:max-w-2xl sm:grid-cols-4">
+            <StatTile value={season.teams.length} label="Teams" />
+            <StatTile value={season.schedule.length} label="Rounds" />
+            {start ? (
+              <StatTile value={formatShortDate(start)} label="Season start" />
+            ) : null}
+            {end ? (
+              <StatTile value={formatShortDate(end)} label="Season end" />
+            ) : null}
           </div>
 
-          {/* CTA Buttons */}
-          <div className="flex gap-4 justify-center flex-wrap">
+          <div className="mt-10 flex flex-wrap justify-center gap-3">
             <Link
               href="/ladder"
-              style={{
-                backgroundColor: "#BFFF00",
-                color: "#0d0d0d",
-                fontFamily: "var(--font-bebas)",
-                fontSize: "1.1rem",
-                letterSpacing: "0.1em",
-                padding: "12px 36px",
-                textDecoration: "none",
-                display: "inline-block",
-                borderRadius: "2px",
-              }}
+              className="rounded-chip bg-accent px-6 py-3 text-label font-semibold text-accent-ink uppercase transition-opacity hover:opacity-90"
             >
-              VIEW LADDER
+              {finished ? "Final ladder" : "View ladder"}
             </Link>
             <Link
               href="/schedule"
-              style={{
-                border: "1px solid #BFFF00",
-                color: "#BFFF00",
-                fontFamily: "var(--font-bebas)",
-                fontSize: "1.1rem",
-                letterSpacing: "0.1em",
-                padding: "12px 36px",
-                textDecoration: "none",
-                display: "inline-block",
-                borderRadius: "2px",
-                backgroundColor: "transparent",
-              }}
+              className="rounded-chip px-6 py-3 text-label font-semibold text-accent uppercase ring-1 ring-accent/50 ring-inset transition-colors hover:bg-accent/10"
             >
-              SEE SCHEDULE
+              See schedule
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Info section */}
-      <section className="max-w-7xl mx-auto px-4 py-20">
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[
-            {
-              icon: "🎾",
-              title: "3 SET FORMAT",
-              body: "Play 3 full sets with standard padel scoring. Max 2 deuces — 3rd deuce is a golden point.",
-            },
-            {
-              icon: "🏆",
-              title: "POINTS SYSTEM",
-              body: "Win a set = 1 league point. 3-0 win earns 3 pts. Every set matters — fight to the end.",
-            },
-            {
-              icon: "⚡",
-              title: "GOOD VIBES",
-              body: "Silver level play. Competitive, social, fun. No egos. Just premium padel with mates.",
-            },
-            {
-              icon: "📍",
-              title: "CANGGU PADEL",
-              body: "All matches played at Canggu Padel every Tuesday from 5:30pm. First match kicks off at 5:30pm, second at 7:00pm.",
-            },
-          ].map((card) => (
-            <div
-              key={card.title}
-              style={{
-                backgroundColor: "#111111",
-                border: "1px solid #222222",
-                borderRadius: "4px",
-                padding: "2rem",
-              }}
-            >
-              <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>{card.icon}</div>
-              <h3
-                style={{
-                  fontFamily: "var(--font-bebas)",
-                  fontSize: "1.5rem",
-                  color: "#BFFF00",
-                  marginBottom: "0.75rem",
-                  letterSpacing: "0.05em",
-                }}
-              >
+      {/* ------------------------------------------------------------ Snapshot */}
+      {segments.length > 0 ? (
+        <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
+          <h2 className="font-display mb-4 text-title text-fg-muted">
+            The league right now
+          </h2>
+          <SegmentedTabs segments={segments} />
+        </section>
+      ) : null}
+
+      {/* -------------------------------------------------------------- Format */}
+      <section className="mx-auto max-w-5xl px-4 pb-16 sm:px-6">
+        <h2 className="font-display mb-4 text-title text-fg-muted">
+          How it works
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {formatCards.map((card) => (
+            <Card key={card.title} className="p-5">
+              <span
+                aria-hidden
+                className="block h-0.5 w-8 rounded-full bg-accent"
+              />
+              <h3 className="font-display mt-4 text-title text-accent">
                 {card.title}
               </h3>
-              <p style={{ color: "#9ca3af", lineHeight: 1.6, fontSize: "0.9rem" }}>{card.body}</p>
-            </div>
+              <p className="mt-2 text-sm leading-relaxed text-fg-muted">
+                {card.body}
+              </p>
+            </Card>
           ))}
         </div>
       </section>
-    </div>
+    </>
   );
 }
+
+const formatCards = [
+  {
+    title: "3 set format",
+    body: "Three full sets, standard padel scoring. Maximum two deuces per game — the third deuce is a golden point.",
+  },
+  {
+    title: "Points system",
+    body: "Win a set, win a league point. A 3–0 win earns 3 points; a 2–1 win earns 2 to the winner and 1 to the loser. Every set counts.",
+  },
+  {
+    title: "Good vibes",
+    body: "Silver level play. Competitive, social, fun. No egos — just good padel with mates.",
+  },
+  {
+    title: "Canggu Padel",
+    body: "All matches at Canggu Padel every Tuesday. First match at 5:30pm, second at 7:00pm.",
+  },
+];

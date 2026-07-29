@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import {
   BallIcon,
@@ -178,12 +179,16 @@ export default async function HomePage() {
             {finished ? `${season.label} complete` : season.label}
           </Badge>
 
-          <h1 className="font-display mt-5 text-hero text-fg">
-            PMA
-            <br />
-            <span className="text-accent">Padel</span>
-            <br />
-            League
+          <h1 className="mt-6 flex justify-center">
+            <span className="sr-only">PMA Padel League</span>
+            <Image
+              src="/brand/pma-badge.png"
+              alt=""
+              width={720}
+              height={720}
+              preload
+              className="h-auto w-[min(78vw,26rem)]"
+            />
           </h1>
 
           <p className="mx-auto mt-5 max-w-md text-lg leading-snug text-fg">
@@ -194,7 +199,7 @@ export default async function HomePage() {
           </p>
 
           <div className="mx-auto mt-10 grid max-w-lg grid-cols-2 gap-y-7 sm:max-w-2xl sm:grid-cols-4">
-            <StatTile value={16} label="Teams" />
+            <StatTile value={season.teamCount} label="Teams" />
             <StatTile
               value={divisions ? divisions.length : 1}
               label="Divisions"
@@ -235,7 +240,7 @@ export default async function HomePage() {
               Icon={CalendarIcon}
               eyebrow={formatWeekdayLong(qualifier.date)}
               title={qualifier.name}
-              body={`${qualifier.format} at ${qualifier.venue}, ${qualifier.courts} courts. All 16 teams play 10 matches — the top 8 go to the Silver Devils, the rest to the Silver Foxes.`}
+              body={`${qualifier.format} at ${qualifier.venue}, ${qualifier.courts} courts. All ${season.teamCount} teams play 10 matches — the top 8 go to the Silver Devils, the rest to the Silver Foxes.`}
             />
           ) : null}
           <StageCard

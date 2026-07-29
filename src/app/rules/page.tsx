@@ -133,9 +133,9 @@ export default function RulesPage() {
               title={qualifier.name}
               meta={`${formatLongDate(qualifier.date)} · ${qualifier.venue}`}
             >
-              {qualifier.format} across {qualifier.courts} courts. All 16 teams
-              play 10 matches. The top 8 qualify for the Silver Devils, the
-              remaining 8 for the Silver Foxes.{" "}
+              {qualifier.format} across {qualifier.courts} courts. All{" "}
+              {season.teamCount} teams play 10 matches. The top 8 qualify for
+              the Silver Devils, the remaining 8 for the Silver Foxes.{" "}
               {qualifier.note ? (
                 <span className="text-fg-subtle">{qualifier.note}</span>
               ) : null}

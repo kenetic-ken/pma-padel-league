@@ -39,6 +39,12 @@ export interface Season {
   defaultTime: string;
   /** Court booking length in minutes. */
   bookingMinutes: number;
+  /**
+   * How many teams the season actually has. Stated explicitly because the
+   * roster array can be short while a team is still unnamed — counting it
+   * would understate the league.
+   */
+  teamCount: number;
   /** How league points are awarded. Fixed per season. */
   scoring: ScoringRule;
   teams: Team[];
@@ -67,6 +73,7 @@ export const seasons: Season[] = [
     matchDay: "Tuesdays",
     defaultTime: "5:30pm",
     bookingMinutes: 120,
+    teamCount: 8,
     scoring: "sets",
     teams: season1Teams,
     schedule: season1Schedule,
@@ -81,6 +88,7 @@ export const seasons: Season[] = [
     matchDay: "Tuesdays",
     defaultTime: "5:30pm",
     bookingMinutes: 90,
+    teamCount: 16,
     scoring: "sets-plus-win",
     teams: season2Teams,
     schedule: season2Schedule,

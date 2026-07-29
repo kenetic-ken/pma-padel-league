@@ -75,8 +75,8 @@ export default async function LadderPage() {
         <TeamList
           teams={season.teams}
           title={`${season.label} field`}
-          meta="16 teams"
-          expected={16}
+          meta={`${season.teamCount} teams`}
+          expected={season.teamCount}
         />
 
         <ArchiveLink />

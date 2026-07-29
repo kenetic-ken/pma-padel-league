@@ -22,12 +22,41 @@ const inter = localFont({
   variable: "--font-inter",
 });
 
+/**
+ * Absolute-URL base for metadata (OG images, canonical links).
+ *
+ * `VERCEL_PROJECT_PRODUCTION_URL` follows the project's production domain
+ * automatically, so this starts pointing at the custom domain the moment one is
+ * attached — no code change needed.
+ */
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+  ? process.env.NEXT_PUBLIC_SITE_URL
+  : process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "http://localhost:3000";
+
+const title = `PMA Padel League — ${currentSeason.label}`;
+const description = `${currentSeason.tagline} ${currentSeason.teamCount} teams across ${currentSeason.divisions?.length ?? 1} division${(currentSeason.divisions?.length ?? 1) === 1 ? "" : "s"} at ${currentSeason.venue}, ${currentSeason.matchDay}.`;
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
-    default: `PMA Tuesday Padel League — ${currentSeason.label}`,
-    template: "%s · PMA Tuesday Padel League",
+    default: title,
+    template: "%s · PMA Padel League",
   },
-  description: `PMA Tuesday Padel League at ${currentSeason.venue} — ${currentSeason.teams.length} teams, ${currentSeason.schedule.length} rounds, ${currentSeason.label}.`,
+  description,
+  openGraph: {
+    title,
+    description,
+    siteName: "PMA Padel League",
+    type: "website",
+    url: "/",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title,
+    description,
+  },
 };
 
 export const viewport: Viewport = {

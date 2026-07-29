@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -25,9 +26,17 @@ export default function Nav() {
       <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
         <Link
           href="/"
-          className="font-display text-2xl leading-none tracking-[0.06em] text-accent"
+          aria-label="PMA Padel League — home"
+          className="shrink-0"
         >
-          PMA Padel
+          <Image
+            src="/brand/pma-badge-mark.png"
+            alt="PMA Padel League"
+            width={192}
+            height={192}
+            preload
+            className="size-12 sm:size-13"
+          />
         </Link>
 
         <div className="hidden items-center gap-1 md:flex">

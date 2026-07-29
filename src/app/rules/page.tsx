@@ -1,169 +1,279 @@
+import type { Metadata } from "next";
+import {
+  BallIcon,
+  CalendarIcon,
+  CourtIcon,
+  PaddleIcon,
+  PointsIcon,
+  ScaleIcon,
+  SparkIcon,
+  TrophyIcon,
+} from "@/components/graphics/icons";
+import { PadelCourt } from "@/components/graphics/PadelCourt";
+import { Card } from "@/components/ui/Card";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { currentSeason, formatLongDate } from "@/data/seasons";
+
+export const metadata: Metadata = {
+  title: "Rules",
+  description: `Format, scoring and culture for the PMA Padel League ${currentSeason.label}.`,
+};
+
+type IconComponent = (props: {
+  className?: string;
+  strokeWidth?: number;
+}) => React.ReactElement;
+
 export default function RulesPage() {
-  const sections = [
+  const season = currentSeason;
+  const { qualifier, finals, divisions } = season;
+
+  const sections: {
+    title: string;
+    Icon: IconComponent;
+    items: string[];
+  }[] = [
     {
-      icon: "📅",
-      title: "FORMAT",
+      title: "Match format",
+      Icon: CalendarIcon,
       items: [
-        "Season 1: 26 May – 14 July 2026",
-        "8 teams, 7-week round robin — every team plays each other once",
-        "Tuesdays at 5:30pm · 120-minute slot · Arrive 10 mins early",
+        `${season.bookingMinutes}-minute court bookings`,
+        "Arrive at least 10 minutes early",
+        "Be ready to start at the scheduled match time",
+        "Matches are played over three sets",
       ],
     },
     {
-      icon: "🎾",
-      title: "SCORING",
+      title: "Scoring",
+      Icon: CourtIcon,
       items: [
-        "Play 3 full sets, standard padel scoring",
-        "Maximum 2 deuces per game",
-        "3rd deuce = golden point (sudden death)",
+        "Standard padel scoring",
+        "Two deuces are played normally",
+        "At the third deuce, the next point is Golden Point",
+        "The receiving team chooses the receiving side",
       ],
     },
     {
-      icon: "🏆",
-      title: "LEAGUE POINTS",
+      title: "Shootout 15",
+      Icon: BallIcon,
       items: [
-        "Win a set = 1 league point",
-        "3–0 win = 3 pts for you, 0 for opponent",
-        "2–1 win = 2 pts for winner, 1 pt for loser",
-        "Every set counts — never give up!",
+        "If roughly under 30 minutes remain before the third set begins, play a Shootout 15",
+        "First to 15 points, win by 2",
+        "Counts as the third set",
+        "Standard tie-break serving rotation",
+        "Use common sense — the objective is to finish inside the booking",
       ],
     },
     {
-      icon: "📊",
-      title: "LADDER TIEBREAKER",
+      title: "Ladder points",
+      Icon: PointsIcon,
       items: [
-        "Primary: Total league points (sets won)",
-        "Secondary: Sets won ÷ sets played ratio",
-        "Further: Head-to-head result",
+        "Each match is worth 4 ladder points",
+        "1 point for each set, and an extra point for the match winner",
+        "Winning the match matters. Every set matters",
       ],
     },
     {
-      icon: "🔄",
-      title: "SUBSTITUTES",
+      title: "Ladder tiebreaker",
+      Icon: ScaleIcon,
       items: [
-        "Subs allowed from the PMA community",
-        "Keep it fair — don't bring ringers",
-        "Let the league know ahead of time",
+        "Primary: total ladder points",
+        "Secondary: games won ÷ games lost",
+        "Then: head-to-head result",
       ],
     },
     {
-      icon: "🎱",
-      title: "BALLS",
+      title: "Substitutes",
+      Icon: PaddleIcon,
       items: [
-        "Use new or fairly-new balls each match",
-        "Split the cost between both teams",
-        "Each team brings 3 balls minimum",
+        "Teams organise their own substitutes",
+        "Subs should come from the PMA community",
+        "Keep substitutions fair",
+        "No Gold-level ringers",
       ],
     },
     {
-      icon: "✨",
-      title: "THE VIBE",
+      title: "PMA culture",
+      Icon: SparkIcon,
       items: [
-        "Competitive, social, and fun — this is silver level",
-        "No egos. Good sportsmanship always.",
-        "Celebrate great shots, even your opponent's",
+        "Competitive, social and fun",
+        "Primarily for older Silver-level players",
+        "Good games. Good people. Good banter",
+        "Leave the ego at the door. No dickheads",
+        "Nobody's getting scouted",
+      ],
+    },
+    {
+      title: "Fair play",
+      Icon: TrophyIcon,
+      items: [
+        "If in doubt, replay the point",
+        "Life's too short to argue over social padel",
       ],
     },
   ];
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-16">
-      <div className="mb-12">
-        <p
-          style={{ color: "#BFFF00", fontSize: "0.75rem", letterSpacing: "0.2em", textTransform: "uppercase" }}
-          className="mb-2"
-        >
-          Season 1 · 2026
-        </p>
-        <h1
-          style={{ fontFamily: "var(--font-bebas)", fontSize: "4rem", letterSpacing: "0.02em", lineHeight: 1 }}
-        >
-          RULES
-        </h1>
-      </div>
+    <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
+      <PageHeader
+        eyebrow={`${season.label} · ${season.matchDay}`}
+        title="Rules"
+        sub="Everything you need to know before Tuesday."
+      />
 
-      <div className="grid md:grid-cols-2 gap-6">
-        {sections.map((section) => (
-          <div
-            key={section.title}
-            style={{
-              backgroundColor: "#111",
-              border: "1px solid #222",
-              borderRadius: "4px",
-              padding: "1.5rem",
-            }}
+      {/* ------------------------------------------------- Season structure */}
+      <Card className="mb-6 p-5 sm:p-6">
+        <h2 className="font-display text-title text-accent">
+          How the season works
+        </h2>
+        <ol className="mt-4 space-y-4">
+          {qualifier ? (
+            <Step
+              n={1}
+              title={qualifier.name}
+              meta={`${formatLongDate(qualifier.date)} · ${qualifier.venue}`}
+            >
+              {qualifier.format} across {qualifier.courts} courts. All 16 teams
+              play 10 matches. The top 8 qualify for the Silver Devils, the
+              remaining 8 for the Silver Foxes.{" "}
+              {qualifier.note ? (
+                <span className="text-fg-subtle">{qualifier.note}</span>
+              ) : null}
+            </Step>
+          ) : null}
+          <Step
+            n={qualifier ? 2 : 1}
+            title="Regular season"
+            meta={`${season.schedule.length} rounds${divisions ? " per division" : ""}`}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "1rem" }}>
-              <span style={{ fontSize: "1.4rem" }}>{section.icon}</span>
-              <h2
-                style={{
-                  fontFamily: "var(--font-bebas)",
-                  fontSize: "1.4rem",
-                  color: "#BFFF00",
-                  letterSpacing: "0.05em",
-                  margin: 0,
-                }}
-              >
+            Each division plays a {season.schedule.length}-round round robin.
+            {divisions
+              ? ` ${divisions.map((d) => `${d.name} at ${d.venue}`).join(", ")}.`
+              : null}
+          </Step>
+          {finals ? (
+            <Step
+              n={qualifier ? 3 : 2}
+              title={finals.name}
+              meta={formatLongDate(finals.date)}
+            >
+              {finals.intro}
+            </Step>
+          ) : null}
+        </ol>
+      </Card>
+
+      {/* ------------------------------------------------------- Divisions */}
+      {divisions ? (
+        <div className="mb-6 grid gap-4 sm:grid-cols-2">
+          {divisions.map((division) => (
+            <Card key={division.slug} className="p-5">
+              <h2 className="font-display text-title text-accent">
+                {division.name}
+              </h2>
+              <p className="mt-1.5 text-sm text-fg-muted">
+                {division.blurb} Eight teams over {season.schedule.length}{" "}
+                regular-season rounds, at {division.venue}.
+              </p>
+              <p className="mt-4 text-label font-semibold text-fg-subtle uppercase">
+                The goal
+              </p>
+              <ul className="mt-2 space-y-1.5">
+                {division.goals.map((goal) => (
+                  <li
+                    key={goal}
+                    className="relative pl-4 text-sm leading-relaxed text-fg-muted"
+                  >
+                    <span
+                      aria-hidden
+                      className="absolute top-2.5 left-0 size-1 rounded-full bg-accent"
+                    />
+                    {goal}
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          ))}
+        </div>
+      ) : null}
+
+      {/* ----------------------------------------------------- Rule cards */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        {sections.map((section) => (
+          <Card key={section.title} className="p-5">
+            <div className="flex items-center gap-2.5">
+              <section.Icon className="size-5 shrink-0 text-accent" />
+              <h2 className="font-display text-title text-accent">
                 {section.title}
               </h2>
             </div>
-            <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
-              {section.items.map((item, i) => (
+            <ul className="mt-3 space-y-2">
+              {section.items.map((item) => (
                 <li
-                  key={i}
-                  style={{
-                    color: "#9ca3af",
-                    fontSize: "0.9rem",
-                    lineHeight: 1.6,
-                    paddingLeft: "12px",
-                    position: "relative",
-                    marginBottom: "4px",
-                  }}
+                  key={item}
+                  className="relative pl-4 text-sm leading-relaxed text-fg-muted"
                 >
                   <span
-                    style={{
-                      position: "absolute",
-                      left: 0,
-                      color: "#BFFF00",
-                      fontWeight: 700,
-                    }}
-                  >
-                    ·
-                  </span>
+                    aria-hidden
+                    className="absolute top-2.5 left-0 size-1 rounded-full bg-accent"
+                  />
                   {item}
                 </li>
               ))}
             </ul>
-          </div>
+          </Card>
         ))}
       </div>
 
-      {/* Spirit callout */}
-      <div
-        style={{
-          marginTop: "2rem",
-          padding: "1.5rem 2rem",
-          border: "1px solid #BFFF00",
-          borderRadius: "4px",
-          backgroundColor: "#0d1a00",
-          textAlign: "center",
-        }}
+      <Card
+        accent
+        className="relative mt-6 overflow-hidden px-6 py-9 text-center"
       >
-        <p
-          style={{
-            fontFamily: "var(--font-bebas)",
-            fontSize: "1.8rem",
-            color: "#BFFF00",
-            letterSpacing: "0.05em",
-            marginBottom: "0.5rem",
-          }}
-        >
-          PLAY HARD. STAY HUMBLE. HAVE FUN.
-        </p>
-        <p style={{ color: "#6b7280", fontSize: "0.85rem" }}>
-          This league is about getting better together. Good games, good vibes, see you Tuesday 🎾
-        </p>
-      </div>
+        <PadelCourt
+          className="absolute top-1/2 left-1/2 w-[135%] max-w-none -translate-x-1/2 -translate-y-1/2 text-accent/[0.07]"
+          strokeWidth={0.045}
+        />
+        <div className="relative">
+          <p className="font-display text-2xl text-accent sm:text-3xl">
+            Good games. Good people. Good banter.
+          </p>
+          <p className="mt-2 text-sm text-fg-muted">
+            If in doubt, replay the point. Life&rsquo;s too short to argue over
+            social padel.
+          </p>
+        </div>
+      </Card>
     </div>
+  );
+}
+
+function Step({
+  n,
+  title,
+  meta,
+  children,
+}: {
+  n: number;
+  title: string;
+  meta?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <li className="flex gap-4">
+      <span className="font-display nums flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-lg leading-none text-accent-ink">
+        {n}
+      </span>
+      <div className="min-w-0 pt-1">
+        <p className="text-[0.9375rem] leading-tight font-semibold text-fg">
+          {title}
+        </p>
+        {meta ? (
+          <p className="mt-1 text-label font-medium text-fg-subtle uppercase">
+            {meta}
+          </p>
+        ) : null}
+        <p className="mt-2 text-sm leading-relaxed text-fg-muted">{children}</p>
+      </div>
+    </li>
   );
 }

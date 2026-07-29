@@ -1,19 +1,16 @@
-export interface Team {
-  id: number;
-  name: string;
-  players: string;
-}
+/**
+ * Kept as a stable entry point for Season 1 team lookups.
+ *
+ * New code should use the season-scoped helpers in `@/data/seasons`
+ * (`teamById(season, id)` / `teamName(season, id)`) so it works across seasons.
+ */
 
-export const teams: Team[] = [
-  { id: 1, name: "Lobsters", players: "Damon & Scott" },
-  { id: 2, name: "Singkenken", players: "Ken, Niko & Federico" },
-  { id: 3, name: "Padel to the Metal", players: "Troy & Fab" },
-  { id: 4, name: "The B Team", players: "JB & Dave" },
-  { id: 5, name: "The Silver Nagas", players: "Rick & Mehdi" },
-  { id: 6, name: "Island Storm", players: "Tim & Adam & Todd" },
-  { id: 7, name: "Eight Eyes", players: "Justin & Ben" },
-  { id: 8, name: "Court Jesters", players: "Phil & Adam" },
-];
+import { season1Teams } from "./season-1";
+import type { Team } from "./types";
+
+export type { Team };
+
+export const teams: Team[] = season1Teams;
 
 export function getTeamById(id: number): Team | undefined {
   return teams.find((t) => t.id === id);

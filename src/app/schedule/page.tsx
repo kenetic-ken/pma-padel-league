@@ -1,174 +1,204 @@
-import { schedule, ResultsMap } from "@/data/schedule";
-import { getTeamName } from "@/data/teams";
-import { kv } from "@vercel/kv";
-
-async function getResults(): Promise<ResultsMap> {
-  try {
-    return (await kv.get<ResultsMap>("results")) ?? {};
-  } catch {
-    return {};
-  }
-}
+import type { Metadata } from "next";
+import { CourtIcon, TrophyIcon } from "@/components/graphics/icons";
+import { Badge } from "@/components/ui/Badge";
+import { Card, CardHeader, CardRows } from "@/components/ui/Card";
+import { FinalsBracket } from "@/components/ui/FinalsBracket";
+import { MatchRow } from "@/components/ui/MatchRow";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { RoundAnchor, RoundJumpNav } from "@/components/ui/RoundJumpNav";
+import {
+  activeRound,
+  currentSeason,
+  formatRoundDate,
+  formatWeekdayLong,
+  isSeasonFinished,
+} from "@/data/seasons";
+import { getResults } from "@/lib/results";
+import { cn } from "@/lib/cn";
 
 export const revalidate = 60;
 
-function formatDate(dateStr: string) {
-  const d = new Date(dateStr + "T00:00:00");
-  return d.toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short" });
-}
+export const metadata: Metadata = {
+  title: "Schedule",
+  description: `Fixtures and key dates for the PMA Padel League ${currentSeason.label}.`,
+};
 
 export default async function SchedulePage() {
+  const season = currentSeason;
   const results = await getResults();
-
-  // Determine current round
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const upcomingRound = schedule.find((round) => {
-    const roundDate = new Date(round.date + "T00:00:00");
-    return roundDate >= today;
-  });
-
-  const currentRound = upcomingRound?.round ?? schedule[schedule.length - 1]?.round ?? 1;
+  const current = activeRound(season);
+  const finished = isSeasonFinished(season);
+  const { qualifier, finals, divisions } = season;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-16">
-      <div className="mb-12">
-        <p style={{ color: "#BFFF00", fontSize: "0.75rem", letterSpacing: "0.2em", textTransform: "uppercase" }} className="mb-2">
-          Season 1 · 2026
-        </p>
-        <h1 style={{ fontFamily: "var(--font-bebas)", fontSize: "4rem", letterSpacing: "0.02em", lineHeight: 1 }}>
-          SCHEDULE
-        </h1>
-        <p className="mt-3" style={{ color: "#9ca3af", fontSize: "0.75rem", letterSpacing: "0.2em", textTransform: "uppercase" }}>
-          📍 Canggu Padel · Every Tuesday · 5:30pm start
-        </p>
-      </div>
+    <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
+      <PageHeader
+        eyebrow={`${season.label} · ${season.matchDay}`}
+        title="Schedule"
+        sub={`${season.schedule.length} rounds of round-robin${divisions ? " in each division" : ""}, ${season.bookingMinutes}-minute court bookings. Arrive at least 10 minutes early and be ready to start on time.`}
+      />
 
-      <div className="space-y-8">
-        {schedule.map((round) => {
-          const isCurrent = round.round === currentRound;
-          const isPast = round.round < currentRound;
+      {/* ------------------------------------------------------- Qualifier */}
+      {qualifier ? (
+        <Card accent className="mb-8">
+          <CardHeader
+            accent
+            title={
+              <span className="flex flex-wrap items-center gap-2.5">
+                {qualifier.name}
+                <Badge>Season opener</Badge>
+              </span>
+            }
+            meta={formatWeekdayLong(qualifier.date)}
+          />
+          <div className="px-4 py-5 sm:px-5">
+            <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-fg-muted">
+              <span>{qualifier.venue}</span>
+              <span className="nums">{qualifier.time}</span>
+              <span className="nums">{qualifier.courts} courts</span>
+              <span>{qualifier.format}</span>
+            </div>
 
-          return (
-            <div
-              key={round.round}
-              style={{
-                border: isCurrent ? "1px solid #BFFF00" : "1px solid #222",
-                borderRadius: "4px",
-                overflow: "hidden",
-                opacity: isPast ? 0.7 : 1,
-              }}
-            >
-              {/* Round header */}
-              <div
-                style={{
-                  backgroundColor: isCurrent ? "#0d1a00" : "#111",
-                  borderBottom: isCurrent ? "1px solid #BFFF00" : "1px solid #222",
-                  padding: "12px 20px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <span style={{ fontFamily: "var(--font-bebas)", fontSize: "1.5rem", color: isCurrent ? "#BFFF00" : "#fff" }}>
-                    ROUND {round.round}
-                  </span>
-                  {isCurrent && (
-                    <span
-                      style={{
-                        backgroundColor: "#BFFF00",
-                        color: "#0d0d0d",
-                        fontSize: "0.6rem",
-                        letterSpacing: "0.15em",
-                        padding: "2px 8px",
-                        borderRadius: "2px",
-                        fontWeight: 700,
-                      }}
-                    >
-                      CURRENT
-                    </span>
-                  )}
-                </div>
-                <span style={{ color: "#9ca3af", fontSize: "0.85rem" }}>
-                  {formatDate(round.date)}
-                </span>
-              </div>
-
-              {/* Matches */}
+            <div className="mt-5 grid gap-5 sm:grid-cols-2">
               <div>
-                {round.matches.map((match, idx) => {
-                  const result = results[match.id];
-                  let homeSets = 0, awaySets = 0;
-                  if (result) {
-                    for (const s of result.sets) {
-                      if (s.home > s.away) homeSets++;
-                      else if (s.away > s.home) awaySets++;
-                    }
-                  }
-
-                  return (
-                    <div
-                      key={match.id}
-                      style={{
-                        padding: "14px 20px",
-                        borderBottom: idx < round.matches.length - 1 ? "1px solid #1a1a1a" : "none",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "12px",
-                      }}
-                    >
-                      {/* Home team */}
-                      <div style={{ flex: 1, textAlign: "right", color: result && homeSets > awaySets ? "#fff" : "#9ca3af", fontWeight: result && homeSets > awaySets ? 600 : 400 }}>
-                        {getTeamName(match.home)}
-                      </div>
-
-                      {/* Score / VS */}
-                      <div style={{ textAlign: "center", minWidth: "80px" }}>
-                        {result ? (
-                          <div>
-                            <div style={{ fontFamily: "var(--font-bebas)", fontSize: "1.4rem", color: "#BFFF00", lineHeight: 1 }}>
-                              {homeSets} – {awaySets}
-                            </div>
-                            <div style={{ fontSize: "0.65rem", color: "#555", marginTop: "2px" }}>
-                              {result.sets.map((s) => `${s.home}-${s.away}`).join(" ")}
-                            </div>
-                            <div style={{ fontSize: "0.65rem", color: "#777", marginTop: "4px", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                              {match.time ?? "5:30pm"}
-                            </div>
-                          </div>
-                        ) : (
-                          <div>
-                            <span style={{ color: "#444", fontSize: "0.9rem", letterSpacing: "0.1em" }}>VS</span>
-                            <div style={{ fontSize: "0.65rem", color: "#777", marginTop: "4px", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                              {match.time ?? "5:30pm"}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Away team */}
-                      <div style={{ flex: 1, color: result && awaySets > homeSets ? "#fff" : "#9ca3af", fontWeight: result && awaySets > homeSets ? 600 : 400 }}>
-                        {getTeamName(match.away)}
-                      </div>
-
-                      {/* Points badges */}
-                      {result && (
-                        <div style={{ display: "flex", gap: "4px", minWidth: "80px", justifyContent: "flex-end" }}>
-                          <span style={{ fontSize: "0.65rem", color: "#666", letterSpacing: "0.05em" }}>
-                            {homeSets}pts / {awaySets}pts
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                <p className="text-label font-semibold text-fg-subtle uppercase">
+                  How it runs
+                </p>
+                <ul className="mt-2.5 space-y-1.5">
+                  {qualifier.facts.map((fact) => (
+                    <Bullet key={fact}>{fact}</Bullet>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className="text-label font-semibold text-fg-subtle uppercase">
+                  What it decides
+                </p>
+                <ul className="mt-2.5 space-y-1.5">
+                  {qualifier.outcomes.map((outcome) => (
+                    <Bullet key={outcome}>{outcome}</Bullet>
+                  ))}
+                </ul>
               </div>
             </div>
+
+            {qualifier.note ? (
+              <p className="mt-5 text-xs text-fg-subtle">{qualifier.note}</p>
+            ) : null}
+          </div>
+        </Card>
+      ) : null}
+
+      {/* --------------------------------------------- Division venue key */}
+      {divisions ? (
+        <div className="mb-8 grid gap-3 sm:grid-cols-2">
+          {divisions.map((division) => (
+            <div
+              key={division.slug}
+              className="flex items-center gap-3 rounded-panel bg-surface px-4 py-3.5"
+            >
+              <CourtIcon className="size-5 shrink-0 text-accent" />
+              <div className="min-w-0">
+                <p className="truncate text-[0.9375rem] leading-tight text-fg">
+                  {division.name}
+                </p>
+                <p className="mt-0.5 truncate text-xs text-fg-subtle">
+                  Plays at {division.venue}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {/* ---------------------------------------------------- Regular season */}
+      <h2 className="font-display mb-3 text-title text-fg-muted">
+        Regular season
+      </h2>
+
+      <RoundJumpNav
+        rounds={season.schedule.map((r) => r.round)}
+        highlight={current?.round}
+      />
+
+      {finished ? (
+        <p className="mb-8 rounded-panel bg-surface px-5 py-4 text-sm text-fg-muted">
+          {season.label} is complete — every round has been played.
+        </p>
+      ) : null}
+
+      <div className="space-y-5">
+        {season.schedule.map((round) => {
+          const isCurrent = round.round === current?.round;
+          const isPast = current ? round.round < current.round : true;
+          const pending = round.matches.length === 0;
+
+          return (
+            <Card
+              key={round.round}
+              as="section"
+              accent={isCurrent}
+              className={cn(isPast && !isCurrent && "opacity-80")}
+            >
+              <RoundAnchor round={round.round} />
+              <CardHeader
+                accent={isCurrent}
+                title={
+                  <span className="flex items-center gap-2.5">
+                    Round {round.round}
+                    {isCurrent ? <Badge>Next up</Badge> : null}
+                  </span>
+                }
+                meta={formatRoundDate(round.date)}
+              />
+              {pending ? (
+                <p className="px-4 py-4 text-sm text-fg-subtle sm:px-5">
+                  Fixtures to be announced — they follow from the qualifier
+                  seeding.
+                </p>
+              ) : (
+                <CardRows>
+                  {round.matches.map((match) => (
+                    <MatchRow
+                      key={match.id}
+                      season={season}
+                      match={match}
+                      result={results[match.id]}
+                    />
+                  ))}
+                </CardRows>
+              )}
+            </Card>
           );
         })}
       </div>
+
+      {/* ------------------------------------------------------------ Finals */}
+      {finals ? (
+        <section className="mt-14">
+          <div className="mb-3 flex items-center gap-2.5">
+            <TrophyIcon className="size-6 shrink-0 text-accent" />
+            <h2 className="font-display text-title text-fg">{finals.name}</h2>
+          </div>
+          <p className="mb-1 text-eyebrow font-medium text-accent uppercase">
+            {formatWeekdayLong(finals.date)}
+          </p>
+          <p className="mb-6 max-w-2xl text-sm text-fg-muted">{finals.intro}</p>
+          <FinalsBracket groups={finals.groups} />
+        </section>
+      ) : null}
     </div>
+  );
+}
+
+function Bullet({ children }: { children: React.ReactNode }) {
+  return (
+    <li className="relative pl-4 text-sm leading-relaxed text-fg-muted">
+      <span
+        aria-hidden
+        className="absolute top-2.5 left-0 size-1 rounded-full bg-accent"
+      />
+      {children}
+    </li>
   );
 }

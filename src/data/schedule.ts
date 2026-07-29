@@ -1,163 +1,25 @@
-export interface Match {
-  id: string;
-  home: number;
-  away: number;
-  time?: string;
-}
+/**
+ * Kept as a stable entry point.
+ *
+ * `src/app/api/results/route.ts` imports `ResultsMap` and `MatchResult` from
+ * here, and that file is deliberately not modified — so this module must keep
+ * re-exporting them under the same names.
+ *
+ * New code should import from `@/data/types`, `@/data/ladder` or
+ * `@/data/seasons` directly.
+ */
 
-export interface Round {
-  round: number;
-  date: string;
-  matches: Match[];
-}
+export type {
+  LadderEntry,
+  Match,
+  MatchResult,
+  ResultsMap,
+  Round,
+  SetScore,
+  Team,
+} from "./types";
 
-export const schedule: Round[] = [
-  {
-    round: 1,
-    date: "2026-05-26",
-    matches: [
-      { id: "r1m1", home: 1, away: 3 },
-      { id: "r1m2", home: 4, away: 2 },
-      { id: "r1m3", home: 5, away: 8 },
-      { id: "r1m4", home: 6, away: 7, time: "7:00pm" },
-    ],
-  },
-  {
-    round: 2,
-    date: "2026-06-02",
-    matches: [
-      { id: "r2m1", home: 1, away: 7 },
-      { id: "r2m2", home: 8, away: 6 },
-      { id: "r2m3", home: 2, away: 5 },
-      { id: "r2m4", home: 3, away: 4 },
-    ],
-  },
-  {
-    round: 3,
-    date: "2026-06-09",
-    matches: [
-      { id: "r3m1", home: 1, away: 6, time: "7:30pm" },
-      { id: "r3m2", home: 7, away: 5 },
-      { id: "r3m3", home: 8, away: 4 },
-      { id: "r3m4", home: 2, away: 3 },
-    ],
-  },
-  {
-    round: 4,
-    date: "2026-06-16",
-    matches: [
-      { id: "r4m1", home: 1, away: 5 },
-      { id: "r4m2", home: 6, away: 4 },
-      { id: "r4m3", home: 7, away: 3 },
-      { id: "r4m4", home: 8, away: 2 },
-    ],
-  },
-  {
-    round: 5,
-    date: "2026-06-23",
-    matches: [
-      { id: "r5m1", home: 1, away: 4 },
-      { id: "r5m2", home: 5, away: 3 },
-      { id: "r5m3", home: 6, away: 2 },
-      { id: "r5m4", home: 7, away: 8 },
-    ],
-  },
-  {
-    round: 6,
-    date: "2026-06-30",
-    matches: [
-      { id: "r6m1", home: 1, away: 8 },
-      { id: "r6m2", home: 2, away: 7 },
-      { id: "r6m3", home: 3, away: 6 },
-      { id: "r6m4", home: 4, away: 5 },
-    ],
-  },
-  {
-    round: 7,
-    date: "2026-07-07",
-    matches: [
-      { id: "r7m1", home: 1, away: 2 },
-      { id: "r7m2", home: 3, away: 8 },
-      { id: "r7m3", home: 4, away: 7 },
-      { id: "r7m4", home: 5, away: 6 },
-    ],
-  },
-];
+export { computeLadder, formatRatio, gamesRatio, setsWon } from "./ladder";
 
-export interface SetScore {
-  home: number;
-  away: number;
-}
-
-export interface MatchResult {
-  matchId: string;
-  sets: [SetScore, SetScore, SetScore];
-}
-
-export type ResultsMap = Record<string, MatchResult>;
-
-export interface LadderEntry {
-  teamId: number;
-  played: number;
-  setsWon: number;
-  setsLost: number;
-  gamesWon: number;
-  gamesLost: number;
-  points: number;
-}
-
-export function computeLadder(results: ResultsMap): LadderEntry[] {
-  const map: Record<number, LadderEntry> = {};
-
-  // Initialize all 8 teams
-  for (let i = 1; i <= 8; i++) {
-    map[i] = { teamId: i, played: 0, setsWon: 0, setsLost: 0, gamesWon: 0, gamesLost: 0, points: 0 };
-  }
-
-  for (const round of schedule) {
-    for (const match of round.matches) {
-      const result = results[match.id];
-      if (!result) continue;
-
-      let homeSetsWon = 0;
-      let awaySetsWon = 0;
-
-      for (const set of result.sets) {
-        if (set.home > set.away) homeSetsWon++;
-        else if (set.away > set.home) awaySetsWon++;
-      }
-
-      let homeGamesWon = 0;
-      let homeGamesLost = 0;
-      let awayGamesWon = 0;
-      let awayGamesLost = 0;
-
-      for (const set of result.sets) {
-        homeGamesWon += set.home;
-        homeGamesLost += set.away;
-        awayGamesWon += set.away;
-        awayGamesLost += set.home;
-      }
-
-      map[match.home].played++;
-      map[match.away].played++;
-      map[match.home].setsWon += homeSetsWon;
-      map[match.home].setsLost += awaySetsWon;
-      map[match.away].setsWon += awaySetsWon;
-      map[match.away].setsLost += homeSetsWon;
-      map[match.home].gamesWon += homeGamesWon;
-      map[match.home].gamesLost += homeGamesLost;
-      map[match.away].gamesWon += awayGamesWon;
-      map[match.away].gamesLost += awayGamesLost;
-      map[match.home].points += homeSetsWon;
-      map[match.away].points += awaySetsWon;
-    }
-  }
-
-  return Object.values(map).sort((a, b) => {
-    if (b.points !== a.points) return b.points - a.points;
-    const aRatio = a.gamesLost === 0 ? Infinity : a.gamesWon / a.gamesLost;
-    const bRatio = b.gamesLost === 0 ? Infinity : b.gamesWon / b.gamesLost;
-    return bRatio - aRatio;
-  });
-}
+/** Season 1 schedule, kept for backwards compatibility. */
+export { season1Schedule as schedule } from "./season-1";

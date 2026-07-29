@@ -1,0 +1,5 @@
+# The results API is deliberately left byte-for-byte untouched.
+src/app/api/results/route.ts
+
+.next
+node_modules

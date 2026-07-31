@@ -8,7 +8,6 @@ import type { Division, FinalsNight, Qualifier, Round, Team } from "./types";
    single finals night decides the champions and who moves between divisions.
 
    Still outstanding:
-   - Team 16 has not been named or rostered.
    - Team 4 ("TBD") is awaiting a name.
    - Division membership and seeding, decided at the qualifier on 4 August.
    - Round-by-round fixtures, which follow from the seeding.
@@ -30,7 +29,7 @@ export const season2Teams: Team[] = [
   { id: 13, name: "Komodo Crew", players: "Mitch & Levent" },
   { id: 14, name: "Kiss My Ace", players: "Rod & James" },
   { id: 15, name: "Persian Power", players: "Arman & Behzad" },
-  // Team 16 to be confirmed.
+  { id: 16, name: "Wild Cards", players: "Marcus & Steve" },
 ];
 
 export const season2Qualifier: Qualifier = {

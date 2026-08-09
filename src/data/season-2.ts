@@ -10,7 +10,6 @@ import type { Division, FinalsNight, Qualifier, Round, Team } from "./types";
    The qualifier was played on 4 August and both divisions are now seeded.
 
    Still outstanding:
-   - Team 4 ("TBD") is awaiting a name.
    - Silver Foxes fixtures.
    ============================================================================ */
 
@@ -18,7 +17,10 @@ export const season2Teams: Team[] = [
   { id: 1, name: "Eight Eyes", players: "Ben & Justin" },
   { id: 2, name: "Singkenken", players: "Ken & Niko" },
   { id: 3, name: "Island Storm", players: "Tim, Todd & Adam" },
-  { id: 4, name: "TBD", players: "Steve & Alexander", nameProvisional: true },
+  // "TBD" is the team's actual name, not a placeholder — hence no
+  // `nameProvisional`. The Steve here and the Steve on Wild Cards are two
+  // different people.
+  { id: 4, name: "TBD", players: "Steve & Alexander" },
   { id: 5, name: "Kopi Krem", players: "Mehdi & Olivier" },
   { id: 6, name: "Shake n Bake", players: "Fab & Dave" },
   { id: 7, name: "The Feds", players: "Federico & Federico" },

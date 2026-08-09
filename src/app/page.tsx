@@ -19,6 +19,7 @@ import {
   currentSeason,
   divisionTeams,
   divisionsAssigned,
+  divisionsWithFixtures,
   formatRoundDate,
   formatShortDate,
   formatWeekdayLong,
@@ -29,6 +30,7 @@ import {
   seasonEnd,
   seasonStart,
 } from "@/data/seasons";
+import type { Round } from "@/data/types";
 import { getResults } from "@/lib/results";
 import { cn } from "@/lib/cn";
 
@@ -41,62 +43,103 @@ export default async function HomePage() {
   const assigned = divisionsAssigned(season);
   const { qualifier, finals, divisions } = season;
 
-  const nextRound = finished ? undefined : nextUnplayedRound(season, results);
-  const lastRound = latestPlayedRound(season, results);
   const start = seasonStart(season);
   const end = seasonEnd(season);
 
+  /*
+   * A divisional season has no single "next round" — each division runs its
+   * own draw. Where fixtures are published per division, the snapshot stacks a
+   * card per division; otherwise it falls back to the season calendar.
+   */
+  const withFixtures = divisionsWithFixtures(season);
+  const sources: {
+    key: string;
+    label?: string;
+    venue?: string;
+    rounds: Round[];
+  }[] =
+    withFixtures.length > 0
+      ? withFixtures.map((d) => ({
+          key: d.slug,
+          label: d.name,
+          venue: d.venue,
+          rounds: d.schedule,
+        }))
+      : [{ key: season.slug, rounds: season.schedule }];
+
+  const nextRounds = finished
+    ? []
+    : sources.flatMap((source) => {
+        const round = nextUnplayedRound(source.rounds, results);
+        return round ? [{ ...source, round }] : [];
+      });
+
+  const lastRounds = sources.flatMap((source) => {
+    const round = latestPlayedRound(source.rounds, results);
+    return round ? [{ ...source, round }] : [];
+  });
+
   const segments: Segment[] = [];
 
-  if (nextRound) {
+  if (nextRounds.length > 0) {
     segments.push({
       id: "next",
       label: "Next up",
       content: (
-        <Card accent>
-          <CardHeader
-            accent
-            title={`Round ${nextRound.round}`}
-            meta={formatRoundDate(nextRound.date)}
-          />
-          <CardRows>
-            {nextRound.matches.map((match) => (
-              <MatchRow
-                key={match.id}
-                season={season}
-                match={match}
-                result={results[match.id]}
+        <div className="space-y-4">
+          {nextRounds.map((source) => (
+            <Card key={source.key} accent>
+              <CardHeader
+                accent
+                title={`${source.label ? `${source.label} · ` : ""}Round ${source.round.round}`}
+                meta={formatRoundDate(source.round.date)}
               />
-            ))}
-          </CardRows>
-        </Card>
+              <CardRows>
+                {source.round.matches.map((match) => (
+                  <MatchRow
+                    key={match.id}
+                    season={season}
+                    match={match}
+                    result={results[match.id]}
+                    roundDate={source.round.date}
+                    defaultVenue={source.venue}
+                  />
+                ))}
+              </CardRows>
+            </Card>
+          ))}
+        </div>
       ),
     });
   }
 
-  if (lastRound) {
+  if (lastRounds.length > 0) {
     segments.push({
       id: "results",
       label: "Latest results",
       content: (
-        <Card>
-          <CardHeader
-            title={`Round ${lastRound.round}`}
-            meta={formatRoundDate(lastRound.date)}
-          />
-          <CardRows>
-            {lastRound.matches
-              .filter((m) => results[m.id])
-              .map((match) => (
-                <MatchRow
-                  key={match.id}
-                  season={season}
-                  match={match}
-                  result={results[match.id]}
-                />
-              ))}
-          </CardRows>
-        </Card>
+        <div className="space-y-4">
+          {lastRounds.map((source) => (
+            <Card key={source.key}>
+              <CardHeader
+                title={`${source.label ? `${source.label} · ` : ""}Round ${source.round.round}`}
+                meta={formatRoundDate(source.round.date)}
+              />
+              <CardRows>
+                {source.round.matches
+                  .filter((m) => results[m.id])
+                  .map((match) => (
+                    <MatchRow
+                      key={match.id}
+                      season={season}
+                      match={match}
+                      result={results[match.id]}
+                    />
+                  ))}
+              </CardRows>
+            </Card>
+          ))}
+        </div>
       ),
     });
   }
@@ -240,7 +283,11 @@ export default async function HomePage() {
               Icon={CalendarIcon}
               eyebrow={formatWeekdayLong(qualifier.date)}
               title={qualifier.name}
-              body={`${qualifier.format} at ${qualifier.venue}, ${qualifier.courts} courts. All ${season.teamCount} teams play 10 matches — the top 8 go to the Silver Devils, the rest to the Silver Foxes.`}
+              body={
+                assigned
+                  ? `${qualifier.format} at ${qualifier.venue}, ${qualifier.courts} courts. All ${season.teamCount} teams played 10 matches — the top 8 went to the Silver Devils, the rest to the Silver Foxes. Played and done.`
+                  : `${qualifier.format} at ${qualifier.venue}, ${qualifier.courts} courts. All ${season.teamCount} teams play 10 matches — the top 8 go to the Silver Devils, the rest to the Silver Foxes.`
+              }
             />
           ) : null}
           <StageCard

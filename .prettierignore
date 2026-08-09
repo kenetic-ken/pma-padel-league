@@ -1,5 +1,9 @@
 # The results API is deliberately left byte-for-byte untouched.
 src/app/api/results/route.ts
 
+# So is the admin score-entry screen — a formatting pass on it would bury real
+# changes in whitespace noise.
+src/app/admin
+
 .next
 node_modules

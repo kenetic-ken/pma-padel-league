@@ -82,7 +82,7 @@ export const seasons: Season[] = [
     slug: "season-2",
     number: 2,
     label: "Season 2",
-    status: "upcoming",
+    status: "live",
     tagline: "Competitive matches. Good banter. No dickheads.",
     venue: "Paradise Padel & Holywings",
     matchDay: "Tuesdays",
@@ -144,6 +144,15 @@ export function divisionsAssigned(season: Season): boolean {
   return Boolean(season.divisions?.every((d) => d.teamIds.length > 0));
 }
 
+/**
+ * Divisions whose fixtures have been published. A division can have its teams
+ * before it has its draw, so pages that list matches ask this rather than
+ * assuming that assigned divisions have something to show.
+ */
+export function divisionsWithFixtures(season: Season): Division[] {
+  return (season.divisions ?? []).filter((d) => d.schedule.length > 0);
+}
+
 export function seasonStart(season: Season): string | undefined {
   return season.qualifier?.date ?? season.schedule[0]?.date;
 }
@@ -167,19 +176,32 @@ export function fixturesPending(season: Season): boolean {
 }
 
 /**
- * The round the season is "on".
+ * The round a schedule is "on".
  *
  * Returns the first round not yet in the past. Once every round has been
  * played this returns `undefined` — which is what tells the UI the season is
  * finished, rather than pinning "CURRENT" to the final round forever.
  */
 export function activeRound(
-  season: Season,
+  rounds: Round[],
   today = new Date(),
 ): Round | undefined {
   const startOfDay = new Date(today);
   startOfDay.setHours(0, 0, 0, 0);
-  return season.schedule.find((round) => parseDate(round.date) >= startOfDay);
+  return rounds.find((round) => parseDate(roundEnd(round)) >= startOfDay);
+}
+
+/**
+ * The last date a round is played on. Rounds can spill onto a second night
+ * when court availability is tight, so a round is only over once its latest
+ * match has been played — not once its nominal date has passed.
+ */
+export function roundEnd(round: Round): string {
+  return round.matches.reduce(
+    (latest, match) =>
+      match.date && match.date > latest ? match.date : latest,
+    round.date,
+  );
 }
 
 /** True when every round, and any finals night, is in the past. */
@@ -189,7 +211,9 @@ export function isSeasonFinished(season: Season, today = new Date()): boolean {
   startOfDay.setHours(0, 0, 0, 0);
   if (season.finals && parseDate(season.finals.date) >= startOfDay)
     return false;
-  return activeRound(season, today) === undefined;
+  return season.schedule.every(
+    (round) => parseDate(roundEnd(round)) < startOfDay,
+  );
 }
 
 /** Rounds for a division if it has its own fixtures, else the season calendar. */
@@ -200,10 +224,10 @@ export function roundsFor(season: Season, division?: Division): Round[] {
 
 /** The next round with at least one match still missing a result. */
 export function nextUnplayedRound(
-  season: Season,
+  rounds: Round[],
   results: ResultsMap,
 ): Round | undefined {
-  return season.schedule.find(
+  return rounds.find(
     (round) =>
       round.matches.length > 0 &&
       round.matches.some((match) => !results[match.id]),
@@ -212,17 +236,17 @@ export function nextUnplayedRound(
 
 /** Most recent round with at least one result, latest first. */
 export function latestPlayedRound(
-  season: Season,
+  rounds: Round[],
   results: ResultsMap,
 ): Round | undefined {
-  return [...season.schedule]
+  return [...rounds]
     .reverse()
     .find((round) => round.matches.some((match) => results[match.id]));
 }
 
 /** Rounds that have at least one result, most recent first. */
-export function playedRounds(season: Season, results: ResultsMap): Round[] {
-  return [...season.schedule]
+export function playedRounds(rounds: Round[], results: ResultsMap): Round[] {
+  return [...rounds]
     .reverse()
     .filter((round) => round.matches.some((match) => results[match.id]));
 }

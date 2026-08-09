@@ -27,6 +27,13 @@ export interface Match {
   away: number;
   /** Court time, when it differs from the season default. */
   time?: string;
+  /**
+   * Play date, when it differs from the round's date — a round can spill onto
+   * a second night when court availability is tight.
+   */
+  date?: string;
+  /** Venue, when it differs from the division's home venue. */
+  venue?: string;
 }
 
 export interface Round {

@@ -53,7 +53,7 @@ export default async function ArchivePage() {
           const champion = ladder.find((e) => e.played > 0)
             ? ladder[0]
             : undefined;
-          const rounds = playedRounds(season, results);
+          const rounds = playedRounds(season.schedule, results);
           const start = seasonStart(season);
           const end = seasonEnd(season);
 

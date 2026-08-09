@@ -12,7 +12,11 @@ import {
 import { PadelCourt } from "@/components/graphics/PadelCourt";
 import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { currentSeason, formatLongDate } from "@/data/seasons";
+import {
+  currentSeason,
+  divisionsAssigned,
+  formatLongDate,
+} from "@/data/seasons";
 
 export const metadata: Metadata = {
   title: "Rules",
@@ -27,6 +31,7 @@ type IconComponent = (props: {
 export default function RulesPage() {
   const season = currentSeason;
   const { qualifier, finals, divisions } = season;
+  const seeded = divisionsAssigned(season);
 
   const sections: {
     title: string;
@@ -134,8 +139,9 @@ export default function RulesPage() {
               meta={`${formatLongDate(qualifier.date)} · ${qualifier.venue}`}
             >
               {qualifier.format} across {qualifier.courts} courts. All{" "}
-              {season.teamCount} teams play 10 matches. The top 8 qualify for
-              the Silver Devils, the remaining 8 for the Silver Foxes.{" "}
+              {season.teamCount} teams {seeded ? "played" : "play"} 10 matches.
+              The top 8 {seeded ? "qualified" : "qualify"} for the Silver
+              Devils, the remaining 8 for the Silver Foxes.{" "}
               {qualifier.note ? (
                 <span className="text-fg-subtle">{qualifier.note}</span>
               ) : null}

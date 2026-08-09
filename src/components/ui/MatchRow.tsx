@@ -1,6 +1,6 @@
 import { setsWon } from "@/data/ladder";
 import type { Season } from "@/data/seasons";
-import { teamById } from "@/data/seasons";
+import { formatRoundDate, teamById } from "@/data/seasons";
 import type { Match, MatchResult } from "@/data/types";
 import { cn } from "@/lib/cn";
 
@@ -17,12 +17,18 @@ export function MatchRow({
   match,
   result,
   showPlayers = true,
+  /** The round's date — a match only shows its own date when it differs. */
+  roundDate,
+  /** The division's home venue — a match only shows a venue when it differs. */
+  defaultVenue,
   className,
 }: {
   season: Season;
   match: Match;
   result?: MatchResult;
   showPlayers?: boolean;
+  roundDate?: string;
+  defaultVenue?: string;
   className?: string;
 }) {
   const home = teamById(season, match.home);
@@ -30,6 +36,12 @@ export function MatchRow({
   const homeName = home?.name ?? `Team ${match.home}`;
   const awayName = away?.name ?? `Team ${match.away}`;
   const time = match.time ?? season.defaultTime;
+  // Only surface these when they depart from the round/division default, so the
+  // common case stays quiet and the exceptions stand out.
+  const oddDate =
+    match.date && match.date !== roundDate ? match.date : undefined;
+  const oddVenue =
+    match.venue && match.venue !== defaultVenue ? match.venue : undefined;
 
   const tally = result ? setsWon(result) : undefined;
   const homeWon = tally ? tally.home > tally.away : false;
@@ -37,7 +49,7 @@ export function MatchRow({
 
   const label = result
     ? `${homeName} ${tally!.home}, ${awayName} ${tally!.away}`
-    : `${homeName} versus ${awayName}, ${time}`;
+    : `${homeName} versus ${awayName}, ${time}${oddDate ? `, ${formatRoundDate(oddDate)}` : ""}${oddVenue ? `, ${oddVenue}` : ""}`;
 
   return (
     <article
@@ -66,7 +78,7 @@ export function MatchRow({
             <TotalCell value={tally!.home} won={homeWon} />
           </>
         ) : (
-          <FixtureMeta time={time} />
+          <FixtureMeta time={time} date={oddDate} venue={oddVenue} />
         )}
 
         <TeamCell
@@ -156,16 +168,30 @@ function TotalCell({ value, won }: { value: number; won: boolean }) {
 }
 
 /** Right-hand block for an unplayed fixture: spans both team rows. */
-function FixtureMeta({ time }: { time: string }) {
+function FixtureMeta({
+  time,
+  date,
+  venue,
+}: {
+  time: string;
+  date?: string;
+  venue?: string;
+}) {
   return (
     <div
-      className="flex flex-col items-end justify-center gap-1 self-stretch"
+      className="flex flex-col items-end justify-center gap-1 self-stretch text-right"
       style={{ gridRow: "span 2" }}
     >
       <span className="text-label font-medium text-fg-subtle uppercase">
         vs
       </span>
+      {date ? (
+        <span className="nums text-xs font-semibold text-accent">
+          {formatRoundDate(date)}
+        </span>
+      ) : null}
       <span className="nums text-xs text-fg-muted">{time}</span>
+      {venue ? <span className="text-xs text-fg-subtle">{venue}</span> : null}
     </div>
   );
 }

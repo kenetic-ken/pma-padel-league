@@ -7,10 +7,11 @@ import type { Division, FinalsNight, Qualifier, Round, Team } from "./types";
    which then plays its own seven-round round robin at its own venue, before a
    single finals night decides the champions and who moves between divisions.
 
+   The qualifier was played on 4 August and both divisions are now seeded.
+
    Still outstanding:
    - Team 4 ("TBD") is awaiting a name.
-   - Division membership and seeding, decided at the qualifier on 4 August.
-   - Round-by-round fixtures, which follow from the seeding.
+   - Silver Foxes fixtures.
    ============================================================================ */
 
 export const season2Teams: Team[] = [
@@ -53,9 +54,10 @@ export const season2Qualifier: Qualifier = {
 };
 
 /**
- * The season calendar. Dates are fixed; fixtures follow once the qualifier has
- * sorted and seeded the divisions, so `matches` is empty for now and the
- * schedule page renders these as "fixtures to be announced".
+ * The season calendar — the nights the league plays on. Fixtures live on each
+ * division, so `matches` stays empty here; this is the shared date spine the
+ * two divisions hang off, and the fallback a division without a published draw
+ * renders as "fixtures to be announced".
  */
 export const season2Schedule: Round[] = [
   { round: 1, date: "2026-08-11", matches: [] },
@@ -65,6 +67,85 @@ export const season2Schedule: Round[] = [
   { round: 5, date: "2026-09-08", matches: [] },
   { round: 6, date: "2026-09-15", matches: [] },
   { round: 7, date: "2026-09-22", matches: [] },
+];
+
+/* -- Silver Devils fixtures ------------------------------------------------
+   A full round robin: 28 matches, every team meeting every other once.
+   Round 1 is played away at Tap Padel and Paradise; rounds 2-7 are at
+   Holywings. Rounds 5-7 spill onto the Thursday, so those matches carry their
+   own date.
+   -------------------------------------------------------------------------- */
+const devilsSchedule: Round[] = [
+  {
+    round: 1,
+    date: "2026-08-11",
+    matches: [
+      { id: "s2d1r1m1", home: 1, away: 10, venue: "Tap Padel" },
+      { id: "s2d1r1m2", home: 3, away: 2, venue: "Tap Padel" },
+      { id: "s2d1r1m3", home: 8, away: 6, venue: "Paradise Padel" },
+      { id: "s2d1r1m4", home: 7, away: 16, venue: "Tap Padel" },
+    ],
+  },
+  {
+    round: 2,
+    date: "2026-08-18",
+    matches: [
+      { id: "s2d1r2m1", home: 1, away: 16 },
+      { id: "s2d1r2m2", home: 3, away: 6 },
+      { id: "s2d1r2m3", home: 8, away: 7 },
+      { id: "s2d1r2m4", home: 2, away: 10 },
+    ],
+  },
+  {
+    round: 3,
+    date: "2026-08-25",
+    matches: [
+      { id: "s2d1r3m1", home: 1, away: 6 },
+      { id: "s2d1r3m2", home: 3, away: 16 },
+      { id: "s2d1r3m3", home: 8, away: 10 },
+      { id: "s2d1r3m4", home: 2, away: 7 },
+    ],
+  },
+  {
+    round: 4,
+    date: "2026-09-01",
+    matches: [
+      { id: "s2d1r4m1", home: 1, away: 7 },
+      { id: "s2d1r4m2", home: 3, away: 10 },
+      { id: "s2d1r4m3", home: 8, away: 2 },
+      { id: "s2d1r4m4", home: 6, away: 16 },
+    ],
+  },
+  {
+    round: 5,
+    date: "2026-09-08",
+    matches: [
+      { id: "s2d1r5m1", home: 8, away: 16 },
+      { id: "s2d1r5m2", home: 6, away: 2 },
+      { id: "s2d1r5m3", home: 10, away: 7 },
+      { id: "s2d1r5m4", home: 1, away: 3, date: "2026-09-10" },
+    ],
+  },
+  {
+    round: 6,
+    date: "2026-09-15",
+    matches: [
+      { id: "s2d1r6m1", home: 6, away: 10 },
+      { id: "s2d1r6m2", home: 2, away: 16 },
+      { id: "s2d1r6m3", home: 1, away: 8, date: "2026-09-17" },
+      { id: "s2d1r6m4", home: 3, away: 7, date: "2026-09-17" },
+    ],
+  },
+  {
+    round: 7,
+    date: "2026-09-22",
+    matches: [
+      { id: "s2d1r7m1", home: 6, away: 7 },
+      { id: "s2d1r7m2", home: 10, away: 16 },
+      { id: "s2d1r7m3", home: 1, away: 2, date: "2026-09-24" },
+      { id: "s2d1r7m4", home: 3, away: 8, date: "2026-09-24" },
+    ],
+  },
 ];
 
 export const season2Divisions: Division[] = [
@@ -78,8 +159,8 @@ export const season2Divisions: Division[] = [
       "Win the Silver Devils Championship",
       "Avoid the relegation playoffs",
     ],
-    teamIds: [],
-    schedule: [],
+    teamIds: [1, 3, 8, 6, 2, 10, 7, 16],
+    schedule: devilsSchedule,
   },
   {
     slug: "silver-foxes",
@@ -88,7 +169,7 @@ export const season2Divisions: Division[] = [
     blurb: "The developing Silver division.",
     venue: "Paradise Padel",
     goals: ["Earn promotion to the Silver Devils"],
-    teamIds: [],
+    teamIds: [4, 5, 9, 11, 12, 13, 14, 15],
     schedule: [],
   },
 ];

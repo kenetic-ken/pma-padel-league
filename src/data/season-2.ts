@@ -9,8 +9,7 @@ import type { Division, FinalsNight, Qualifier, Round, Team } from "./types";
 
    The qualifier was played on 4 August and both divisions are now seeded.
 
-   Still outstanding:
-   - Silver Foxes fixtures.
+   Both draws are published. Nothing outstanding.
    ============================================================================ */
 
 export const season2Teams: Team[] = [
@@ -150,6 +149,103 @@ const devilsSchedule: Round[] = [
   },
 ];
 
+/* -- Silver Foxes fixtures -------------------------------------------------
+   A full round robin: 28 matches, every team meeting every other once. Played
+   at Paradise Padel, except that from 8 September Vamos move to Thursday
+   nights at Holywings — so their last three fixtures carry their own date and
+   venue.
+   -------------------------------------------------------------------------- */
+const foxesSchedule: Round[] = [
+  {
+    round: 1,
+    date: "2026-08-11",
+    matches: [
+      { id: "s2d2r1m1", home: 15, away: 14 },
+      { id: "s2d2r1m2", home: 4, away: 12 },
+      { id: "s2d2r1m3", home: 5, away: 13 },
+      { id: "s2d2r1m4", home: 11, away: 9 },
+    ],
+  },
+  {
+    round: 2,
+    date: "2026-08-18",
+    matches: [
+      { id: "s2d2r2m1", home: 15, away: 12 },
+      { id: "s2d2r2m2", home: 14, away: 13 },
+      { id: "s2d2r2m3", home: 4, away: 9 },
+      { id: "s2d2r2m4", home: 5, away: 11 },
+    ],
+  },
+  {
+    round: 3,
+    date: "2026-08-25",
+    matches: [
+      { id: "s2d2r3m1", home: 15, away: 13 },
+      { id: "s2d2r3m2", home: 12, away: 9 },
+      { id: "s2d2r3m3", home: 14, away: 11 },
+      { id: "s2d2r3m4", home: 4, away: 5 },
+    ],
+  },
+  {
+    round: 4,
+    date: "2026-09-01",
+    matches: [
+      { id: "s2d2r4m1", home: 15, away: 9 },
+      { id: "s2d2r4m2", home: 13, away: 11 },
+      { id: "s2d2r4m3", home: 12, away: 5 },
+      { id: "s2d2r4m4", home: 14, away: 4 },
+    ],
+  },
+  {
+    round: 5,
+    date: "2026-09-08",
+    matches: [
+      { id: "s2d2r5m1", home: 15, away: 11 },
+      { id: "s2d2r5m2", home: 13, away: 4 },
+      { id: "s2d2r5m3", home: 12, away: 14 },
+      {
+        id: "s2d2r5m4",
+        home: 9,
+        away: 5,
+        date: "2026-09-10",
+        venue: "Holywings",
+      },
+    ],
+  },
+  {
+    round: 6,
+    date: "2026-09-15",
+    matches: [
+      { id: "s2d2r6m1", home: 15, away: 5 },
+      { id: "s2d2r6m2", home: 11, away: 4 },
+      { id: "s2d2r6m3", home: 13, away: 12 },
+      {
+        id: "s2d2r6m4",
+        home: 9,
+        away: 14,
+        date: "2026-09-17",
+        venue: "Holywings",
+      },
+    ],
+  },
+  {
+    round: 7,
+    date: "2026-09-22",
+    matches: [
+      { id: "s2d2r7m1", home: 15, away: 4 },
+      { id: "s2d2r7m2", home: 5, away: 14 },
+      { id: "s2d2r7m3", home: 11, away: 12 },
+      {
+        id: "s2d2r7m4",
+        home: 9,
+        away: 13,
+        date: "2026-09-24",
+        venue: "Holywings",
+      },
+    ],
+  },
+];
+
 export const season2Divisions: Division[] = [
   {
     slug: "silver-devils",
@@ -172,7 +268,7 @@ export const season2Divisions: Division[] = [
     venue: "Paradise Padel",
     goals: ["Earn promotion to the Silver Devils"],
     teamIds: [4, 5, 9, 11, 12, 13, 14, 15],
-    schedule: [],
+    schedule: foxesSchedule,
   },
 ];
 

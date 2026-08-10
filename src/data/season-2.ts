@@ -20,7 +20,7 @@ export const season2Teams: Team[] = [
   // `nameProvisional`. The Steve here and the Steve on Wild Cards are two
   // different people.
   { id: 4, name: "TBD", players: "Steve & Alexander" },
-  { id: 5, name: "Kopi Krem", players: "Mehdi & Olivier" },
+  { id: 5, name: "Kopi Krem", players: "Mehdi, Olivier & Manuel" },
   { id: 6, name: "Shake n Bake", players: "Fab & Dave" },
   { id: 7, name: "The Feds", players: "Federico & Federico" },
   { id: 8, name: "Lobsters", players: "Scott & Damon" },

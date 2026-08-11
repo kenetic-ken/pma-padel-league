@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { Division, MatchResult, ResultsMap, SetScore } from "@/data/types";
 import { currentSeason, roundsFor, teamById } from "@/data/seasons";
+import { parseResultLines } from "@/lib/parse-results";
 
 /**
  * Score entry for the current season.
@@ -35,6 +36,16 @@ export default function AdminClient() {
     { home: 0, away: 0 },
     { home: 0, away: 0 },
   ]);
+
+  // Bulk paste
+  const [bulkText, setBulkText] = useState("");
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkMessage, setBulkMessage] = useState("");
+  const parsed = useMemo(
+    () => parseResultLines(bulkText, season, results),
+    [bulkText, season, results],
+  );
+  const ready = parsed.filter((p) => !p.error);
 
   const division: Division | undefined =
     divisions.find((d) => d.slug === divisionSlug) ?? divisions[0];
@@ -102,6 +113,40 @@ export default function AdminClient() {
       setMessage(`❌ Error: ${err.error}`);
     }
     setLoading(false);
+  }
+
+  async function handleBulkSave() {
+    setBulkBusy(true);
+    setBulkMessage("");
+
+    let saved = 0;
+    const failures: string[] = [];
+
+    // Sequential rather than parallel: the API read-modify-writes one KV key,
+    // so concurrent saves would race and drop results.
+    for (const line of ready) {
+      const res = await fetch("/api/results", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-password": password,
+        },
+        body: JSON.stringify({ matchId: line.matchId, sets: line.sets }),
+      });
+      if (res.ok) saved++;
+      else failures.push(`${line.homeName} v ${line.awayName}`);
+    }
+
+    await loadResults();
+    setBulkBusy(false);
+    if (failures.length === 0) {
+      setBulkMessage(`✅ Saved ${saved} result${saved === 1 ? "" : "s"}`);
+      setBulkText("");
+    } else {
+      setBulkMessage(
+        `⚠️ Saved ${saved}, failed ${failures.length}: ${failures.join(", ")}. Check the password.`,
+      );
+    }
   }
 
   async function handleDelete(matchId: string) {
@@ -187,6 +232,140 @@ export default function AdminClient() {
 
   return (
     <div className="space-y-12">
+      {/* --------------------------------------------------- Paste a batch */}
+      <section>
+        <h2
+          style={{
+            fontFamily: "var(--font-bebas)",
+            fontSize: "2rem",
+            color: "#BFFF00",
+            marginBottom: "0.5rem",
+          }}
+        >
+          PASTE RESULTS
+        </h2>
+        <p
+          style={{
+            color: "#6b7280",
+            fontSize: "0.8rem",
+            marginBottom: "1rem",
+            maxWidth: "640px",
+          }}
+        >
+          One match per line, however you write them —{" "}
+          <span style={{ color: "#9ca3af" }}>
+            Wild cards got over the Feds 6-0 3-6 6-2
+          </span>
+          . Winner first is fine; the scores get turned round to match the
+          fixture. Nothing saves until you press the button.
+        </p>
+
+        <textarea
+          value={bulkText}
+          onChange={(e) => setBulkText(e.target.value)}
+          rows={8}
+          spellCheck={false}
+          placeholder={
+            "Vamos vs Ricochet 7-5, 6-0, 5-7\nEight eyes beat slappers 6-1, 6-2, 6-3"
+          }
+          style={{
+            ...inputStyle,
+            maxWidth: "640px",
+            fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+            fontSize: "0.8rem",
+            lineHeight: 1.7,
+            resize: "vertical",
+          }}
+        />
+
+        {parsed.length > 0 && (
+          <div style={{ marginTop: "1rem", maxWidth: "640px" }}>
+            {parsed.map((p, i) => (
+              <div
+                key={i}
+                style={{
+                  padding: "8px 12px",
+                  borderLeft: `2px solid ${p.error ? "#ef4444" : "#BFFF00"}`,
+                  backgroundColor: "#111",
+                  marginBottom: "4px",
+                  fontSize: "0.8rem",
+                }}
+              >
+                {p.error ? (
+                  <>
+                    <div style={{ color: "#ef4444" }}>{p.error}</div>
+                    <div
+                      style={{
+                        color: "#555",
+                        fontSize: "0.75rem",
+                        marginTop: "2px",
+                      }}
+                    >
+                      {p.raw}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div style={{ color: "#d1d5db" }}>
+                      {p.homeName}{" "}
+                      <span style={{ color: "#BFFF00" }}>
+                        {p.sets!.map((s) => `${s.home}-${s.away}`).join("  ")}
+                      </span>{" "}
+                      {p.awayName}
+                    </div>
+                    <div
+                      style={{
+                        color: "#555",
+                        fontSize: "0.75rem",
+                        marginTop: "2px",
+                      }}
+                    >
+                      {p.divisionName ? `${p.divisionName} · ` : ""}Round{" "}
+                      {p.round}
+                      {p.flipped ? (
+                        <span style={{ color: "#9ca3af" }}>
+                          {" "}
+                          · turned round to match the fixture
+                        </span>
+                      ) : null}
+                      {p.overwrites ? (
+                        <span style={{ color: "#f59e0b" }}>
+                          {" "}
+                          · replaces an existing result
+                        </span>
+                      ) : null}
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={handleBulkSave}
+          style={{ ...btnStyle, marginTop: "1rem" }}
+          disabled={bulkBusy || ready.length === 0}
+        >
+          {bulkBusy
+            ? "SAVING..."
+            : `SAVE ${ready.length} RESULT${ready.length === 1 ? "" : "S"}`}
+        </button>
+
+        {bulkMessage && (
+          <p
+            style={{
+              fontSize: "0.85rem",
+              marginTop: "0.75rem",
+              color: bulkMessage.startsWith("✅") ? "#BFFF00" : "#f59e0b",
+            }}
+          >
+            {bulkMessage}
+          </p>
+        )}
+      </section>
+
       {/* ------------------------------------------------- Enter a result */}
       <section>
         <h2
